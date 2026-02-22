@@ -259,3 +259,12 @@ test("is idempotent for triple-quoted table content", () => {
   const twice = formatTableString(once);
   assert.strictEqual(twice, once);
 });
+
+test("does not accumulate indentation on blank lines when base indent is used", () => {
+  const input = "\na|b\n// note\n1|22\n";
+  const once = formatTableString(input, "    ");
+  const twice = formatTableString(once, "    ");
+
+  assert.strictEqual(once, "\n    a | b\n    // note\n    1 | 22\n");
+  assert.strictEqual(twice, once);
+});

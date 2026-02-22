@@ -67,8 +67,9 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
     return trimTrailingWhitespace(formatted);
   });
 
-  // reapply base indentation and leading/trailing newlines
-  return outLines.map((line) => baseIndent + line).join("\n");
+  // Reapply base indentation only to non-blank lines so repeated formatting
+  // does not accumulate whitespace on blank separator lines.
+  return outLines.map((line) => (line.trim() === "" ? "" : baseIndent + line)).join("\n");
 }
 
 type QuoteChar = "'" | "\"";
