@@ -16,7 +16,7 @@
       "begin": "\\A",
       "end": "$",
       "patterns": [
-        { "include": "#tableCell" }
+        { "include": "#tableHeaderCell" }
       ]
     },
     "tableRow": {
@@ -42,6 +42,23 @@
         { "include": "#listLiteral" },
         { "include": "#setLiteral" },
         { "name": "string.unquoted.tabletest", "match": "[^|\\r\\n]+" }
+      ]
+    },
+    "tableHeaderCell": {
+      "begin": "(^|\\|)\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.tabletest.pipe"
+        }
+      },
+      "end": "(?=\\|)|$",
+      "patterns": [
+        { "include": "#stringDouble" },
+        { "include": "#stringSingle" },
+        { "include": "#mapLiteral" },
+        { "include": "#listLiteral" },
+        { "include": "#setLiteral" },
+        { "name": "entity.name.column.tabletest", "match": "[^|\\r\\n]+" }
       ]
     },
     "stringDouble": {

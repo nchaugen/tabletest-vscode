@@ -5,6 +5,7 @@ class Sample {
     a | "b" | 'c'
 //  ^ meta.tabletest.header
 //  ^ markup.heading.tabletest
+//  ^ entity.name.column.tabletest
 //    ^ keyword.operator.tabletest.pipe
 //      ^ string.quoted.double.tabletest
 //          ^ keyword.operator.tabletest.pipe
