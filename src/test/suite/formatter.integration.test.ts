@@ -12,7 +12,7 @@ function shouldRequireKotlin(): boolean {
 }
 
 async function activateExtension(): Promise<void> {
-  const extension = vscode.extensions.getExtension("nchaugen.tabletest");
+  const extension = vscode.extensions.getExtension("tabletest.tabletest");
   await extension?.activate();
 }
 

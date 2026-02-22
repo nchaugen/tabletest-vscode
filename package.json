@@ -2,8 +2,8 @@
   "name": "tabletest",
   "displayName": "TableTest",
   "description": "Syntax highlighting for TableTest tables in Java/Kotlin multiline strings.",
-  "version": "0.0.2",
-  "publisher": "nchaugen",
+  "version": "0.0.3",
+  "publisher": "tabletest",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -14,7 +14,7 @@
   "contributes": {
     "configurationDefaults": {
       "[tabletest]": {
-        "editor.defaultFormatter": "nchaugen.tabletest"
+        "editor.defaultFormatter": "tabletest.tabletest"
       }
     },
     "configuration": {
