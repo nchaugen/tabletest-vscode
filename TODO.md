@@ -9,7 +9,7 @@
 - [x] Fix range formatting: `TableTestFormatter` ignores `offsetPos` and formats by string indexes that assume full-document offsets.
 - [x] Use the `indent` captured by `extractTripleQuotedTables` or compute indent from the string literal start to preserve alignment.
 - [x] Implement best-effort "graceful degradation": return unchanged for malformed/unparseable tables (currently based on invalid collection syntax).
-- [ ] Highlight invalid characters when graceful degradation triggers (surface parse errors).
+- [x] Highlight invalid characters when graceful degradation triggers (surface parse errors).
 - [x] Preserve empty rows inside tables instead of dropping blank lines.
 - [x] Detect and skip non-table multiline strings (only format actual TableTest tables).
 - [x] Handle ragged rows by aligning existing columns only (no new trailing columns).

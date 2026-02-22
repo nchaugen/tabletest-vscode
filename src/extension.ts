@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { TableTestFormatter } from "./formatter";
+import { registerTableDiagnostics } from "./tableDiagnostics";
 
 /**
  * Syntax highlighting is provided via a TextMate injection grammar (see syntaxes/).
@@ -7,6 +8,7 @@ import { TableTestFormatter } from "./formatter";
 export function activate(context: vscode.ExtensionContext) {
 	const formatter = new TableTestFormatter();
 	const supportedLanguages = new Set(["java", "kotlin", "tabletest"]);
+	registerTableDiagnostics(context);
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider([{ language: "tabletest" }], formatter),

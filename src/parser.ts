@@ -13,7 +13,9 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
   if (dataLines.length === 0) return tableText;
   const hasPipe = dataLines.some((line) => splitRow(line).length > 1);
   if (!hasPipe) return tableText;
-  if (!isTableValid(dataLines)) return tableText;
+
+  const issues = findTableIssues(text);
+  if (issues.length > 0) return tableText;
 
   const leadingSpaces = dataLines.map((line) => {
     const match = line.match(/^\s*/);
@@ -74,10 +76,26 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
 }
 
 type QuoteChar = "'" | "\"";
+type CellSpan = {
+  text: string;
+  start: number;
+  end: number;
+};
+
+export type TableIssue = {
+  start: number;
+  end: number;
+  message: string;
+};
 
 function splitRow(line: string): string[] {
-  const cells: string[] = [];
+  return splitRowWithSpans(line).map((cell) => cell.text);
+}
+
+function splitRowWithSpans(line: string): CellSpan[] {
+  const cells: CellSpan[] = [];
   let current = "";
+  let cellStart = 0;
   let inQuotedCell: QuoteChar | null = null;
   let sawNonWhitespace = false;
 
@@ -94,8 +112,9 @@ function splitRow(line: string): string[] {
     }
 
     if (char === "|") {
-      cells.push(current);
+      cells.push({ text: current, start: cellStart, end: i });
       current = "";
+      cellStart = i + 1;
       sawNonWhitespace = false;
       continue;
     }
@@ -116,28 +135,53 @@ function splitRow(line: string): string[] {
     current += char;
   }
 
-  cells.push(current);
+  cells.push({ text: current, start: cellStart, end: line.length });
   return cells;
 }
 
-function isTableValid(lines: string[]): boolean {
-  return lines.every((line) => isRowValid(line));
-}
+export function findTableIssues(tableText: string): TableIssue[] {
+  const lines = tableText.split("\n");
+  const isBlankLine = (line: string): boolean => line.trim() === "";
+  const isCommentLine = (line: string): boolean => line.trimStart().startsWith("//");
+  const dataLines = lines.filter((line) => !isBlankLine(line) && !isCommentLine(line));
+  if (dataLines.length === 0) return [];
+  const hasPipe = dataLines.some((line) => splitRow(line).length > 1);
+  if (!hasPipe) return [];
 
-function isRowValid(line: string): boolean {
-  const cells = splitRow(line);
-  return cells.every((cell) => isCellValid(cell));
-}
-
-function isCellValid(cell: string): boolean {
-  const trimmed = cell.trim();
-  if (trimmed === "") return true;
-  if (isQuotedString(trimmed)) return true;
-  const first = trimmed[0];
-  if (first === "[" || first === "{") {
-    return isCollectionValid(trimmed);
+  const lineOffsets: number[] = [];
+  let offset = 0;
+  for (const line of lines) {
+    lineOffsets.push(offset);
+    offset += line.length + 1;
   }
-  return true;
+
+  const issues: TableIssue[] = [];
+  lines.forEach((line, lineIndex) => {
+    if (isBlankLine(line) || isCommentLine(line)) return;
+
+    const cells = splitRowWithSpans(line);
+    cells.forEach((cell) => {
+      const trimmed = cell.text.trim();
+      if (trimmed === "" || isQuotedString(trimmed)) return;
+
+      const first = trimmed[0];
+      if (first !== "[" && first !== "{") return;
+      if (isCollectionValid(trimmed)) return;
+
+      const leadingWhitespace = cell.text.length - cell.text.trimStart().length;
+      const trailingWhitespace = cell.text.length - cell.text.trimEnd().length;
+      const startInLine = cell.start + leadingWhitespace;
+      const endInLine = Math.max(startInLine + 1, cell.end - trailingWhitespace);
+
+      issues.push({
+        start: (lineOffsets[lineIndex] ?? 0) + startInLine,
+        end: (lineOffsets[lineIndex] ?? 0) + endInLine,
+        message: "Invalid collection syntax in table cell; formatting skipped."
+      });
+    });
+  });
+
+  return issues;
 }
 
 function isCollectionValid(value: string): boolean {

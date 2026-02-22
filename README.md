@@ -36,6 +36,7 @@ Cell values can be:
 - preserves line comments (`//`) and blank lines without data loss
 - uses Unicode-aware display width for alignment (CJK/emoji)
 - falls back to no change if a table looks malformed (best-effort graceful degradation)
+- reports malformed collection cells as VS Code diagnostics (warning)
 
 ## Quick example
 
@@ -99,4 +100,4 @@ Integration tests launch a VS Code host. The runner attempts to install the Kotl
 
 - Table extraction in Java/Kotlin uses a lightweight scanner, not a full Java/Kotlin parser.
 - `value` is extracted only from a direct triple-quoted literal: either explicit `value = """..."""` or a single implicit positional argument with no named arguments.
-- Invalid syntax is handled by skipping formatting rather than showing diagnostics.
+- Diagnostics currently focus on malformed collection cells (lists/sets/maps) that cause formatting to be skipped.
