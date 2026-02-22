@@ -122,6 +122,20 @@ test("passes indent into the formatter", () => {
   assert.strictEqual(edits[0]?.formatted, "indent:4");
 });
 
+test("adds configured extra indent to extracted table indent", () => {
+  const text = [
+    "  @TableTest(",
+    "    \"\"\"",
+    "    a|b",
+    "    \"\"\"",
+    "  )"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (_content, indent) => `indent:${indent.length}`, undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+  assert.strictEqual(edits[0]?.formatted, "indent:6");
+});
+
 test("supports Kotlin-specific triple-quote termination when extracting tables", () => {
   const escapedTerminator = String.raw`\"""`;
   const text = [

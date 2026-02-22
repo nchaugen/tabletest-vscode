@@ -62,6 +62,12 @@ Typical supported annotation forms:
 - `@TableTest("""...""")`
 - `@TableTest(value = """...""")`
 
+### Formatting configuration
+
+- `tabletest.format.extraIndentLevel` (default `0`)
+  - Adds extra indentation levels to formatted rows inside Java/Kotlin `@TableTest` triple-quoted strings.
+  - Indent width follows VS Code formatting options (`tabSize` / `insertSpaces`), so EditorConfig-applied indentation is respected.
+
 ## Development
 
 ```bash
@@ -94,4 +100,3 @@ Integration tests launch a VS Code host. The runner attempts to install the Kotl
 - Table extraction in Java/Kotlin uses a lightweight scanner, not a full Java/Kotlin parser.
 - `value` is extracted only from a direct triple-quoted literal: either explicit `value = """..."""` or a single implicit positional argument with no named arguments.
 - Invalid syntax is handled by skipping formatting rather than showing diagnostics.
-- EditorConfig-driven indentation is not implemented yet.

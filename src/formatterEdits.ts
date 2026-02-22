@@ -18,7 +18,8 @@ export function calculateTableEdits(
   text: string,
   formatTable: FormatTable,
   range?: OffsetRange,
-  language: AnnotationHostLanguage = "java"
+  language: AnnotationHostLanguage = "java",
+  extraIndent: string = ""
 ): TableEdit[] {
   const tables = extractTripleQuotedTables(text, language);
   if (tables.length === 0) return [];
@@ -29,7 +30,7 @@ export function calculateTableEdits(
       if (!withinRange) return [];
     }
 
-    const formatted = formatTable(table.content, table.indent);
+    const formatted = formatTable(table.content, table.indent + extraIndent);
     if (formatted === table.content) return [];
 
     return [{ start: table.start, end: table.end, formatted }];
@@ -61,14 +62,15 @@ export function calculateDocumentEdits(
   document: DocumentAdapter,
   formatTable: FormatTable,
   range?: Range,
-  language: AnnotationHostLanguage = "java"
+  language: AnnotationHostLanguage = "java",
+  extraIndent: string = ""
 ): DocumentEdit[] {
   const text = document.getText();
   const offsetRange = range
     ? { start: document.offsetAt(range.start), end: document.offsetAt(range.end) }
     : undefined;
 
-  return calculateTableEdits(text, formatTable, offsetRange, language).map((edit) => ({
+  return calculateTableEdits(text, formatTable, offsetRange, language, extraIndent).map((edit) => ({
     range: {
       start: document.positionAt(edit.start),
       end: document.positionAt(edit.end)

@@ -18,7 +18,7 @@
 - [x] Preserve comments and blank lines without data loss.
 - [x] Add Unicode-aware width calculation (wcwidth-style) for alignment.
 - [x] Support empty cell handling explicitly (e.g. `a||c` keeps empty middle cell).
-- [ ] Support base-indent + configurable extra indent (EditorConfig), even if best-effort.
+- [x] Support base-indent + configurable extra indent (EditorConfig), even if best-effort.
 
 ## Parsing / extraction
 - [x] Make `extractTripleQuotedTables` resilient to nested parentheses in `@TableTest(...)` and to other annotations with triple-quoted strings.

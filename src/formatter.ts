@@ -4,26 +4,36 @@ import type { AnnotationHostLanguage } from "./parser";
 import { calculateDocumentEdits } from "./formatterEdits";
 
 export class TableTestFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
-  provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+  provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions): vscode.TextEdit[] {
     if (document.languageId === "tabletest") {
       return this.formatTableDocument(document);
     }
-    return this.formatTablesInRange(document);
+    return this.formatTablesInRange(document, options);
   }
 
-  provideDocumentRangeFormattingEdits(document: vscode.TextDocument, range: vscode.Range): vscode.TextEdit[] {
+  provideDocumentRangeFormattingEdits(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    options: vscode.FormattingOptions
+  ): vscode.TextEdit[] {
     if (document.languageId === "tabletest") {
       return this.formatTableDocument(document);
     }
-    return this.formatTablesInRange(document, range);
+    return this.formatTablesInRange(document, options, range);
   }
 
-  private formatTablesInRange(document: vscode.TextDocument, range?: vscode.Range): vscode.TextEdit[] {
+  private formatTablesInRange(
+    document: vscode.TextDocument,
+    options: vscode.FormattingOptions,
+    range?: vscode.Range
+  ): vscode.TextEdit[] {
+    const extraIndent = this.resolveExtraIndent(document, options);
     const tableEdits = calculateDocumentEdits(
       document,
       formatTableString,
       range,
-      this.annotationHostLanguageFor(document.languageId)
+      this.annotationHostLanguageFor(document.languageId),
+      extraIndent
     );
     return tableEdits.map((edit) => {
       const editRange = new vscode.Range(
@@ -49,5 +59,18 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
       return "kotlin";
     }
     return "java";
+  }
+
+  private resolveExtraIndent(document: vscode.TextDocument, options: vscode.FormattingOptions): string {
+    const config = vscode.workspace.getConfiguration("tabletest", document.uri);
+    const configuredLevels = config.get<number>("format.extraIndentLevel", 0);
+    const levels = Number.isFinite(configuredLevels) ? Math.max(0, Math.floor(configuredLevels)) : 0;
+    if (levels === 0) {
+      return "";
+    }
+
+    const tabSize = Number.isFinite(options.tabSize) ? Math.max(1, Math.floor(options.tabSize)) : 4;
+    const unit = options.insertSpaces ? " ".repeat(tabSize) : "\t";
+    return unit.repeat(levels);
   }
 }

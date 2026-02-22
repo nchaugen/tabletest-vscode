@@ -23,7 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			const edits = formatter.provideDocumentFormattingEdits(document);
+			const formattingOptions = resolveFormattingOptions(editor);
+			const edits = formatter.provideDocumentFormattingEdits(document, formattingOptions);
 			if (edits.length === 0) {
 				return;
 			}
@@ -36,3 +37,14 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+
+function resolveFormattingOptions(editor: vscode.TextEditor): vscode.FormattingOptions {
+	const rawTabSize = editor.options.tabSize;
+	const parsedTabSize = typeof rawTabSize === "number" ? rawTabSize : Number(rawTabSize);
+	const tabSize = Number.isFinite(parsedTabSize) ? Math.max(1, Math.floor(parsedTabSize)) : 4;
+
+	const rawInsertSpaces = editor.options.insertSpaces;
+	const insertSpaces = typeof rawInsertSpaces === "boolean" ? rawInsertSpaces : true;
+
+	return { tabSize, insertSpaces };
+}
