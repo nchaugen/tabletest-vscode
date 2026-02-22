@@ -87,7 +87,7 @@ Additional test command:
 npm run test:integration
 ```
 
-Integration tests launch a VS Code host. Kotlin integration assertions are skipped when no Kotlin language extension is available in the test host. In headless/sandboxed environments where the VS Code test host cannot start, the integration runner exits with a skip message unless `TABLETEST_INTEGRATION_STRICT=1` is set.
+Integration tests launch a VS Code host. The runner attempts to install the Kotlin extension (`fwcd.kotlin`) before executing tests. Kotlin assertions are skipped only when Kotlin support is unavailable and `TABLETEST_REQUIRE_KOTLIN` is not set. In headless/sandboxed environments where the VS Code test host cannot start, the integration runner exits with a skip message unless `TABLETEST_INTEGRATION_STRICT=1` is set.
 
 ## Known limitations
 

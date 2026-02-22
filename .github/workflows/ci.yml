@@ -44,3 +44,4 @@ jobs:
         run: xvfb-run -a npm run test:integration
         env:
           TABLETEST_INTEGRATION_STRICT: "1"
+          TABLETEST_REQUIRE_KOTLIN: "1"

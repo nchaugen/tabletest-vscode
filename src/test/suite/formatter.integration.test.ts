@@ -7,6 +7,10 @@ async function hasLanguage(language: string): Promise<boolean> {
   return languages.includes(language);
 }
 
+function shouldRequireKotlin(): boolean {
+  return process.env.TABLETEST_REQUIRE_KOTLIN === "1";
+}
+
 async function formatDocument(language: "java" | "kotlin", content: string): Promise<string> {
   const extension = vscode.extensions.getExtension("nchaugen.tabletest");
   await extension?.activate();
@@ -46,6 +50,9 @@ suite("TableTest formatter integration", () => {
 
   test("formats a Kotlin table", async function () {
     if (!(await hasLanguage("kotlin"))) {
+      if (shouldRequireKotlin()) {
+        assert.fail("Kotlin language support is required but not available in the integration test host.");
+      }
       this.skip();
       return;
     }
