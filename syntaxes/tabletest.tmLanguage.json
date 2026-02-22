@@ -152,6 +152,9 @@
           "match": ","
         },
         {
+          "include": "#mapKey"
+        },
+        {
           "name": "keyword.operator.assignment.tabletest",
           "match": ":"
         },
@@ -166,6 +169,10 @@
           "match": "[^,:\\]\\r\\n]+"
         }
       ]
+    },
+    "mapKey": {
+      "name": "support.type.property-name.tabletest",
+      "match": "(?:\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*'|[^,:\\]\\r\\n]+)(?=\\s*:)"
     }
   }
 }

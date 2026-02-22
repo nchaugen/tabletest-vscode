@@ -15,6 +15,7 @@ class Sample {
 //  ^ meta.tabletest.list
 //             ^ meta.tabletest.set
 //                       ^ meta.tabletest.map
+//                     ^ support.type.property-name.tabletest
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
