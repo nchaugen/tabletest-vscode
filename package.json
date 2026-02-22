@@ -1,7 +1,8 @@
 {
   "name": "tabletest",
   "displayName": "TableTest",
-  "description": "Syntax highlighting for TableTest tables in Java/Kotlin multiline strings.",
+  "description": "IDE support for readable TableTest data-driven tables in Java, Kotlin, and .table files.",
+  "icon": "tabletest_128x128.png",
   "version": "0.0.3",
   "publisher": "tabletest",
   "engines": {
