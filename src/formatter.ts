@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { formatTableString } from "./parser";
+import type { AnnotationHostLanguage } from "./parser";
 import { calculateDocumentEdits } from "./formatterEdits";
 
 export class TableTestFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
@@ -18,7 +19,12 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
   }
 
   private formatTablesInRange(document: vscode.TextDocument, range?: vscode.Range): vscode.TextEdit[] {
-    const tableEdits = calculateDocumentEdits(document, formatTableString, range);
+    const tableEdits = calculateDocumentEdits(
+      document,
+      formatTableString,
+      range,
+      this.annotationHostLanguageFor(document.languageId)
+    );
     return tableEdits.map((edit) => {
       const editRange = new vscode.Range(
         new vscode.Position(edit.range.start.line, edit.range.start.character),
@@ -36,5 +42,12 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     const lastCharacter = document.lineAt(lastLine).text.length;
     const fullRange = new vscode.Range(0, 0, lastLine, lastCharacter);
     return [vscode.TextEdit.replace(fullRange, formatted)];
+  }
+
+  private annotationHostLanguageFor(languageId: string): AnnotationHostLanguage {
+    if (languageId === "kotlin") {
+      return "kotlin";
+    }
+    return "java";
   }
 }

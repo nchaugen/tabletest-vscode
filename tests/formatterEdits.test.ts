@@ -121,3 +121,20 @@ test("passes indent into the formatter", () => {
   assert.strictEqual(edits.length, 1);
   assert.strictEqual(edits[0]?.formatted, "indent:4");
 });
+
+test("supports Kotlin-specific triple-quote termination when extracting tables", () => {
+  const escapedTerminator = String.raw`\"""`;
+  const text = [
+    "@TableTest(",
+    "value = \"\"\"",
+    "a|b",
+    `1|2${escapedTerminator}`,
+    ")"
+  ].join("\n");
+
+  const javaEdits = calculateTableEdits(text, (content) => content.toUpperCase(), undefined, "java");
+  const kotlinEdits = calculateTableEdits(text, (content) => content.toUpperCase(), undefined, "kotlin");
+
+  assert.strictEqual(javaEdits.length, 0);
+  assert.strictEqual(kotlinEdits.length, 1);
+});

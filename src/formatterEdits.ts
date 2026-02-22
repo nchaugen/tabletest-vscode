@@ -1,4 +1,5 @@
 import { extractTripleQuotedTables } from "./parser";
+import type { AnnotationHostLanguage } from "./parser";
 
 export type OffsetRange = {
   start: number;
@@ -13,8 +14,13 @@ export type TableEdit = {
 
 export type FormatTable = (content: string, indent: string) => string;
 
-export function calculateTableEdits(text: string, formatTable: FormatTable, range?: OffsetRange): TableEdit[] {
-  const tables = extractTripleQuotedTables(text);
+export function calculateTableEdits(
+  text: string,
+  formatTable: FormatTable,
+  range?: OffsetRange,
+  language: AnnotationHostLanguage = "java"
+): TableEdit[] {
+  const tables = extractTripleQuotedTables(text, language);
   if (tables.length === 0) return [];
 
   return tables.flatMap((table) => {
@@ -54,14 +60,15 @@ export type DocumentEdit = {
 export function calculateDocumentEdits(
   document: DocumentAdapter,
   formatTable: FormatTable,
-  range?: Range
+  range?: Range,
+  language: AnnotationHostLanguage = "java"
 ): DocumentEdit[] {
   const text = document.getText();
   const offsetRange = range
     ? { start: document.offsetAt(range.start), end: document.offsetAt(range.end) }
     : undefined;
 
-  return calculateTableEdits(text, formatTable, offsetRange).map((edit) => ({
+  return calculateTableEdits(text, formatTable, offsetRange, language).map((edit) => ({
     range: {
       start: document.positionAt(edit.start),
       end: document.positionAt(edit.end)

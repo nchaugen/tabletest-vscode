@@ -353,8 +353,12 @@ type Range = {
 
 const tripleQuote = "\"\"\"";
 const tableTestMarker = "@TableTest";
+export type AnnotationHostLanguage = "java" | "kotlin";
 
-export function extractTripleQuotedTables(text: string): ExtractedTable[] {
+export function extractTripleQuotedTables(
+  text: string,
+  language: AnnotationHostLanguage = "java"
+): ExtractedTable[] {
   const results: ExtractedTable[] = [];
   let searchIndex = 0;
 
@@ -376,7 +380,7 @@ export function extractTripleQuotedTables(text: string): ExtractedTable[] {
       continue;
     }
 
-    const closeParenIndex = findMatchingParenthesis(text, openParenIndex);
+    const closeParenIndex = findMatchingParenthesis(text, openParenIndex, language);
     if (closeParenIndex < 0) {
       searchIndex = annotationNameEnd;
       continue;
@@ -384,7 +388,7 @@ export function extractTripleQuotedTables(text: string): ExtractedTable[] {
 
     const argumentStart = openParenIndex + 1;
     const argumentEnd = closeParenIndex;
-    const table = extractTableFromArguments(text, argumentStart, argumentEnd);
+    const table = extractTableFromArguments(text, argumentStart, argumentEnd, language);
     if (table) {
       results.push(table);
     }
@@ -395,8 +399,13 @@ export function extractTripleQuotedTables(text: string): ExtractedTable[] {
   return results;
 }
 
-function extractTableFromArguments(text: string, start: number, end: number): ExtractedTable | null {
-  const argumentsRanges = splitTopLevelArguments(text, start, end);
+function extractTableFromArguments(
+  text: string,
+  start: number,
+  end: number,
+  language: AnnotationHostLanguage
+): ExtractedTable | null {
+  const argumentsRanges = splitTopLevelArguments(text, start, end, language);
   let implicitValue: ExtractedTable | null = null;
   let namedArgumentSeen = false;
   let positionalArgumentCount = 0;
@@ -407,13 +416,13 @@ function extractTableFromArguments(text: string, start: number, end: number): Ex
       continue;
     }
 
-    const equalsIndex = findTopLevelEquals(text, expressionStart, range.end);
+    const equalsIndex = findTopLevelEquals(text, expressionStart, range.end, language);
     if (equalsIndex >= 0) {
       namedArgumentSeen = true;
       const leftHandSide = text.slice(expressionStart, equalsIndex).trim();
       if (leftHandSide === "value") {
         const valueStart = skipWhitespaceAndComments(text, equalsIndex + 1, range.end);
-        const namedValue = parseTripleQuotedValue(text, valueStart, range.end);
+        const namedValue = parseTripleQuotedValue(text, valueStart, range.end, language);
         if (namedValue) {
           return namedValue;
         }
@@ -423,7 +432,7 @@ function extractTableFromArguments(text: string, start: number, end: number): Ex
 
     positionalArgumentCount += 1;
     if (!implicitValue) {
-      implicitValue = parseTripleQuotedValue(text, expressionStart, range.end);
+      implicitValue = parseTripleQuotedValue(text, expressionStart, range.end, language);
     }
   }
 
@@ -436,9 +445,14 @@ function extractTableFromArguments(text: string, start: number, end: number): Ex
   return implicitValue;
 }
 
-function parseTripleQuotedValue(text: string, quoteStart: number, limit: number): ExtractedTable | null {
+function parseTripleQuotedValue(
+  text: string,
+  quoteStart: number,
+  limit: number,
+  language: AnnotationHostLanguage
+): ExtractedTable | null {
   if (!text.startsWith(tripleQuote, quoteStart)) return null;
-  const quoteEnd = text.indexOf(tripleQuote, quoteStart + tripleQuote.length);
+  const quoteEnd = findClosingTripleQuote(text, quoteStart, limit, language);
   if (quoteEnd < 0 || quoteEnd > limit) return null;
   const trailingStart = quoteEnd + tripleQuote.length;
   if (skipWhitespaceAndComments(text, trailingStart, limit) !== limit) return null;
@@ -450,7 +464,7 @@ function parseTripleQuotedValue(text: string, quoteStart: number, limit: number)
   return { start: contentStart, end: quoteEnd, content, indent };
 }
 
-function splitTopLevelArguments(text: string, start: number, end: number): Range[] {
+function splitTopLevelArguments(text: string, start: number, end: number, language: AnnotationHostLanguage): Range[] {
   const ranges: Range[] = [];
   let argumentStart = start;
 
@@ -458,7 +472,7 @@ function splitTopLevelArguments(text: string, start: number, end: number): Range
   let index = start;
   while (index < end) {
     if (text.startsWith(tripleQuote, index)) {
-      index = skipTripleQuotedString(text, index, end);
+      index = skipTripleQuotedString(text, index, end, language);
       continue;
     }
     if (text.startsWith("//", index)) {
@@ -499,13 +513,13 @@ function splitTopLevelArguments(text: string, start: number, end: number): Range
   return ranges;
 }
 
-function findTopLevelEquals(text: string, start: number, end: number): number {
+function findTopLevelEquals(text: string, start: number, end: number, language: AnnotationHostLanguage): number {
   const stack: string[] = [];
   let index = start;
 
   while (index < end) {
     if (text.startsWith(tripleQuote, index)) {
-      index = skipTripleQuotedString(text, index, end);
+      index = skipTripleQuotedString(text, index, end, language);
       continue;
     }
     if (text.startsWith("//", index)) {
@@ -539,13 +553,13 @@ function findTopLevelEquals(text: string, start: number, end: number): number {
   return -1;
 }
 
-function findMatchingParenthesis(text: string, openParenIndex: number): number {
+function findMatchingParenthesis(text: string, openParenIndex: number, language: AnnotationHostLanguage): number {
   let depth = 1;
   let index = openParenIndex + 1;
 
   while (index < text.length) {
     if (text.startsWith(tripleQuote, index)) {
-      index = skipTripleQuotedString(text, index, text.length);
+      index = skipTripleQuotedString(text, index, text.length, language);
       continue;
     }
     if (text.startsWith("//", index)) {
@@ -616,10 +630,47 @@ function skipQuotedString(text: string, start: number, quote: QuoteChar, end: nu
   return end;
 }
 
-function skipTripleQuotedString(text: string, start: number, end: number): number {
-  const closeIndex = text.indexOf(tripleQuote, start + tripleQuote.length);
+function skipTripleQuotedString(text: string, start: number, end: number, language: AnnotationHostLanguage): number {
+  const closeIndex = findClosingTripleQuote(text, start, end, language);
   if (closeIndex < 0 || closeIndex + tripleQuote.length > end) return end;
   return closeIndex + tripleQuote.length;
+}
+
+function findClosingTripleQuote(
+  text: string,
+  quoteStart: number,
+  limit: number,
+  language: AnnotationHostLanguage
+): number {
+  let searchIndex = quoteStart + tripleQuote.length;
+  while (searchIndex < limit) {
+    const closeIndex = text.indexOf(tripleQuote, searchIndex);
+    if (closeIndex < 0 || closeIndex + tripleQuote.length > limit) {
+      return -1;
+    }
+    if (isTripleQuoteTerminator(text, closeIndex, language)) {
+      return closeIndex;
+    }
+    searchIndex = closeIndex + 1;
+  }
+  return -1;
+}
+
+function isTripleQuoteTerminator(text: string, quoteStart: number, language: AnnotationHostLanguage): boolean {
+  if (language === "kotlin") {
+    return true;
+  }
+  return !hasOddTrailingBackslashCount(text, quoteStart);
+}
+
+function hasOddTrailingBackslashCount(text: string, index: number): boolean {
+  let backslashCount = 0;
+  let cursor = index - 1;
+  while (cursor >= 0 && (text[cursor] ?? "") === "\\") {
+    backslashCount += 1;
+    cursor -= 1;
+  }
+  return backslashCount % 2 === 1;
 }
 
 function isIdentifierCharacter(value: string): boolean {

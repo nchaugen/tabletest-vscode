@@ -22,7 +22,7 @@
 
 ## Parsing / extraction
 - [x] Make `extractTripleQuotedTables` resilient to nested parentheses in `@TableTest(...)` and to other annotations with triple-quoted strings.
-- [ ] Support Kotlin raw strings and Java text blocks consistently (including `"""` in Java and `"""` in Kotlin).
+- [x] Support Kotlin raw strings and Java text blocks consistently (including `"""` in Java and `"""` in Kotlin).
 - [x] Add tests for edge cases: leading/trailing newlines, indentation, multiple tables, and non-TableTest triple-quoted strings.
 - [x] Add parsing for comments/blank lines so formatter can preserve them.
 - [x] Add parsing for collections and quoted values to enable best-effort normalisation.
@@ -40,8 +40,8 @@
 - [x] Disambiguate list vs map: both use `[...]` in the grammar; currently both patterns overlap.
 - [x] Add scopes for header row vs data rows (no semantic tokens implemented yet).
 - [x] Expand grammar tests further using the existing `vscode-tmgrammar-test` harness (additional Java/Kotlin edge cases).
-- [ ] Kotlin: validate raw-string edge cases and decide if Java/Kotlin terminator rules should diverge (TextMate injection now enabled).
-- [ ] Edge case: Kotlin raw strings treat backslash literally; we currently avoid terminating on `\"""`, which can ignore an actual terminator in invalid Kotlin strings. Acceptable for now.
+- [x] Kotlin: validate raw-string edge cases and decide if Java/Kotlin terminator rules should diverge (TextMate injection now enabled).
+- [x] Kotlin raw strings terminate on plain `"""`; Java text blocks still treat `\"""` as non-terminating in our Java grammar/extractor.
 - [x] Allow line comments (`//`) between `@TableTest(` and opening `"""` when detecting the implicit value.
 
 ## Automated tests

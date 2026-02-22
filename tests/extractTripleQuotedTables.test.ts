@@ -140,6 +140,44 @@ test("handles valid Kotlin annotation argument forms around value", () => {
   assert.strictEqual(first.content, "\n    x|y\n    3|4\n    ");
 });
 
+test("treats escaped triple quote as content in Java text blocks", () => {
+  const escapedTerminator = String.raw`\"""`;
+  const text = [
+    "@TableTest(",
+    "    value = \"\"\"",
+    "    a|b",
+    `    1|2${escapedTerminator}|3`,
+    "    4|5",
+    "    \"\"\"",
+    ")"
+  ].join("\n");
+
+  const tables = extractTripleQuotedTables(text, "java");
+  assert.strictEqual(tables.length, 1);
+
+  const first = tables[0];
+  assert.ok(first);
+  assert.strictEqual(first.content, `\n    a|b\n    1|2${escapedTerminator}|3\n    4|5\n    `);
+});
+
+test("treats backslash triple quote as terminator in Kotlin raw strings", () => {
+  const escapedTerminator = String.raw`\"""`;
+  const text = [
+    "@TableTest(",
+    "    value = \"\"\"",
+    "    a|b",
+    `    1|2${escapedTerminator}`,
+    ")"
+  ].join("\n");
+
+  const tables = extractTripleQuotedTables(text, "kotlin");
+  assert.strictEqual(tables.length, 1);
+
+  const first = tables[0];
+  assert.ok(first);
+  assert.strictEqual(first.content, "\n    a|b\n    1|2\\");
+});
+
 test("does not use implicit triple-quoted value when named arguments are present", () => {
   const text = [
     "@TableTest(",
