@@ -53,3 +53,25 @@ class SameLineClose {
   )
   void testSameLineClose() {}
 }
+
+class CommentBeforeImplicitValue {
+  @TableTest(
+    // comment before value
+    """
+    left | right
+//       ^ keyword.operator.tabletest.pipe
+    """
+  )
+  void testCommentBeforeImplicitValue() {}
+}
+
+class MultipleArgsWithNamedValue {
+  @TableTest(
+    name = "custom name",
+    value = """
+    one | two
+//      ^ keyword.operator.tabletest.pipe
+    """
+  )
+  void testMultipleArgsWithNamedValue() {}
+}

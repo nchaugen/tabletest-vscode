@@ -339,27 +339,296 @@ function isExtendedPictographic(value: string): boolean {
   return extendedPictographic.test(value);
 }
 
-export function extractTripleQuotedTables(text: string): Array<{ start: number; end: number; content: string; indent: string }> {
-  const results: Array<{ start: number; end: number; content: string; indent: string }> = [];
+type ExtractedTable = {
+  start: number;
+  end: number;
+  content: string;
+  indent: string;
+};
 
-  const regex = /@TableTest\s*\([\s\S]*?"""([\s\S]*?)"""[\s\S]*?\)/g;
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(text)) !== null) {
-    const fullMatch = m[0];
-    const inner = m[1];
-    const start = m.index + fullMatch.indexOf("\"\"\"");
-    const quoteStart = text.indexOf('"""', m.index);
-    const quoteEnd = text.indexOf('"""', quoteStart + 3);
-    if (quoteStart >= 0 && quoteEnd >= 0) {
-      // compute content between the quotes
-      const contentStart = quoteStart + 3;
-      const content = text.substring(contentStart, quoteEnd);
-      // detect indent before the quote (line start to quoteStart)
-      const lineStart = text.lastIndexOf("\n", quoteStart) + 1;
-      const indent = text.substring(lineStart, quoteStart).match(/^\s*/)?.[0] ?? "";
-      results.push({ start: contentStart, end: quoteEnd, content, indent });
+type Range = {
+  start: number;
+  end: number;
+};
+
+const tripleQuote = "\"\"\"";
+const tableTestMarker = "@TableTest";
+
+export function extractTripleQuotedTables(text: string): ExtractedTable[] {
+  const results: ExtractedTable[] = [];
+  let searchIndex = 0;
+
+  while (searchIndex < text.length) {
+    const annotationStart = text.indexOf(tableTestMarker, searchIndex);
+    if (annotationStart < 0) break;
+
+    const annotationNameEnd = annotationStart + tableTestMarker.length;
+    const previousChar = annotationStart > 0 ? text[annotationStart - 1] ?? "" : "";
+    const nextChar = text[annotationNameEnd] ?? "";
+    if (isIdentifierCharacter(previousChar) || isIdentifierCharacter(nextChar)) {
+      searchIndex = annotationNameEnd;
+      continue;
     }
+
+    const openParenIndex = skipWhitespaceAndComments(text, annotationNameEnd, text.length);
+    if ((text[openParenIndex] ?? "") !== "(") {
+      searchIndex = annotationNameEnd;
+      continue;
+    }
+
+    const closeParenIndex = findMatchingParenthesis(text, openParenIndex);
+    if (closeParenIndex < 0) {
+      searchIndex = annotationNameEnd;
+      continue;
+    }
+
+    const argumentStart = openParenIndex + 1;
+    const argumentEnd = closeParenIndex;
+    const table = extractTableFromArguments(text, argumentStart, argumentEnd);
+    if (table) {
+      results.push(table);
+    }
+
+    searchIndex = closeParenIndex + 1;
   }
 
   return results;
+}
+
+function extractTableFromArguments(text: string, start: number, end: number): ExtractedTable | null {
+  const argumentsRanges = splitTopLevelArguments(text, start, end);
+  let implicitValue: ExtractedTable | null = null;
+  let namedArgumentSeen = false;
+  let positionalArgumentCount = 0;
+
+  for (const range of argumentsRanges) {
+    const expressionStart = skipWhitespaceAndComments(text, range.start, range.end);
+    if (expressionStart >= range.end) {
+      continue;
+    }
+
+    const equalsIndex = findTopLevelEquals(text, expressionStart, range.end);
+    if (equalsIndex >= 0) {
+      namedArgumentSeen = true;
+      const leftHandSide = text.slice(expressionStart, equalsIndex).trim();
+      if (leftHandSide === "value") {
+        const valueStart = skipWhitespaceAndComments(text, equalsIndex + 1, range.end);
+        const namedValue = parseTripleQuotedValue(text, valueStart, range.end);
+        if (namedValue) {
+          return namedValue;
+        }
+      }
+      continue;
+    }
+
+    positionalArgumentCount += 1;
+    if (!implicitValue) {
+      implicitValue = parseTripleQuotedValue(text, expressionStart, range.end);
+    }
+  }
+
+  // In Java/Kotlin annotation usage, implicit value is only reliable when it is
+  // the sole positional argument and no named arguments are present.
+  if (namedArgumentSeen || positionalArgumentCount !== 1) {
+    return null;
+  }
+
+  return implicitValue;
+}
+
+function parseTripleQuotedValue(text: string, quoteStart: number, limit: number): ExtractedTable | null {
+  if (!text.startsWith(tripleQuote, quoteStart)) return null;
+  const quoteEnd = text.indexOf(tripleQuote, quoteStart + tripleQuote.length);
+  if (quoteEnd < 0 || quoteEnd > limit) return null;
+  const trailingStart = quoteEnd + tripleQuote.length;
+  if (skipWhitespaceAndComments(text, trailingStart, limit) !== limit) return null;
+
+  const contentStart = quoteStart + tripleQuote.length;
+  const content = text.slice(contentStart, quoteEnd);
+  const lineStart = text.lastIndexOf("\n", quoteStart) + 1;
+  const indent = text.slice(lineStart, quoteStart).match(/^\s*/)?.[0] ?? "";
+  return { start: contentStart, end: quoteEnd, content, indent };
+}
+
+function splitTopLevelArguments(text: string, start: number, end: number): Range[] {
+  const ranges: Range[] = [];
+  let argumentStart = start;
+
+  const stack: string[] = [];
+  let index = start;
+  while (index < end) {
+    if (text.startsWith(tripleQuote, index)) {
+      index = skipTripleQuotedString(text, index, end);
+      continue;
+    }
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, end);
+      continue;
+    }
+
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char as QuoteChar, end);
+      continue;
+    }
+    if (char === "(" || char === "[" || char === "{") {
+      stack.push(char);
+      index += 1;
+      continue;
+    }
+    if (char === ")" || char === "]" || char === "}") {
+      if (stack.length > 0) {
+        stack.pop();
+      }
+      index += 1;
+      continue;
+    }
+    if (char === "," && stack.length === 0) {
+      ranges.push({ start: argumentStart, end: index });
+      argumentStart = index + 1;
+      index += 1;
+      continue;
+    }
+    index += 1;
+  }
+
+  if (argumentStart < end) {
+    ranges.push({ start: argumentStart, end });
+  }
+
+  return ranges;
+}
+
+function findTopLevelEquals(text: string, start: number, end: number): number {
+  const stack: string[] = [];
+  let index = start;
+
+  while (index < end) {
+    if (text.startsWith(tripleQuote, index)) {
+      index = skipTripleQuotedString(text, index, end);
+      continue;
+    }
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, end);
+      continue;
+    }
+
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char as QuoteChar, end);
+      continue;
+    }
+    if (char === "(" || char === "[" || char === "{") {
+      stack.push(char);
+      index += 1;
+      continue;
+    }
+    if (char === ")" || char === "]" || char === "}") {
+      if (stack.length > 0) {
+        stack.pop();
+      }
+      index += 1;
+      continue;
+    }
+    if (char === "=" && stack.length === 0) {
+      return index;
+    }
+    index += 1;
+  }
+
+  return -1;
+}
+
+function findMatchingParenthesis(text: string, openParenIndex: number): number {
+  let depth = 1;
+  let index = openParenIndex + 1;
+
+  while (index < text.length) {
+    if (text.startsWith(tripleQuote, index)) {
+      index = skipTripleQuotedString(text, index, text.length);
+      continue;
+    }
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, text.length);
+      continue;
+    }
+
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char as QuoteChar, text.length);
+      continue;
+    }
+    if (char === "(") {
+      depth += 1;
+      index += 1;
+      continue;
+    }
+    if (char === ")") {
+      depth -= 1;
+      if (depth === 0) return index;
+      index += 1;
+      continue;
+    }
+    index += 1;
+  }
+
+  return -1;
+}
+
+function skipWhitespaceAndComments(text: string, start: number, end: number): number {
+  let index = start;
+  while (index < end) {
+    const char = text[index] ?? "";
+    if (char === " " || char === "\t" || char === "\n" || char === "\r") {
+      index += 1;
+      continue;
+    }
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, end);
+      continue;
+    }
+    break;
+  }
+  return index;
+}
+
+function skipLineComment(text: string, start: number, end: number): number {
+  let index = start;
+  while (index < end && (text[index] ?? "") !== "\n") {
+    index += 1;
+  }
+  return index;
+}
+
+function skipQuotedString(text: string, start: number, quote: QuoteChar, end: number): number {
+  let index = start + 1;
+  while (index < end) {
+    const char = text[index] ?? "";
+    if (char === "\\") {
+      index += 2;
+      continue;
+    }
+    if (char === quote) {
+      return index + 1;
+    }
+    index += 1;
+  }
+  return end;
+}
+
+function skipTripleQuotedString(text: string, start: number, end: number): number {
+  const closeIndex = text.indexOf(tripleQuote, start + tripleQuote.length);
+  if (closeIndex < 0 || closeIndex + tripleQuote.length > end) return end;
+  return closeIndex + tripleQuote.length;
+}
+
+function isIdentifierCharacter(value: string): boolean {
+  if (value === "") return false;
+  const codePoint = value.charCodeAt(0);
+  return (
+    (codePoint >= 48 && codePoint <= 57) ||
+    (codePoint >= 65 && codePoint <= 90) ||
+    (codePoint >= 97 && codePoint <= 122) ||
+    codePoint === 95
+  );
 }

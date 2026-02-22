@@ -33,7 +33,7 @@ Cell values can be:
 - preserves empty cells (for example `a||c`)
 - normalises spacing in collection values (lists/sets/maps)
 - preserves quoted values
-- preserves comments and blank lines without data loss
+- preserves line comments (`//`) and blank lines without data loss
 - uses Unicode-aware display width for alignment (CJK/emoji)
 - falls back to no change if a table looks malformed (best-effort graceful degradation)
 
@@ -91,7 +91,7 @@ Integration tests launch a VS Code host and install the Kotlin extension.
 
 ## Known limitations
 
-- Table extraction in Java/Kotlin is regex-based, not a full Java/Kotlin parser.
-- In unusual annotations with multiple triple-quoted strings, formatting may target the first triple-quoted string in `@TableTest(...)`.
+- Table extraction in Java/Kotlin uses a lightweight scanner, not a full Java/Kotlin parser.
+- `value` is extracted only from a direct triple-quoted literal: either explicit `value = """..."""` or a single implicit positional argument with no named arguments.
 - Invalid syntax is handled by skipping formatting rather than showing diagnostics.
 - EditorConfig-driven indentation is not implemented yet.

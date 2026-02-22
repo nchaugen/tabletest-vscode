@@ -21,9 +21,9 @@
 - [ ] Support base-indent + configurable extra indent (EditorConfig), even if best-effort.
 
 ## Parsing / extraction
-- [ ] Make `extractTripleQuotedTables` resilient to nested parentheses in `@TableTest(...)` and to other annotations with triple-quoted strings.
+- [x] Make `extractTripleQuotedTables` resilient to nested parentheses in `@TableTest(...)` and to other annotations with triple-quoted strings.
 - [ ] Support Kotlin raw strings and Java text blocks consistently (including `"""` in Java and `"""` in Kotlin).
-- [ ] Add tests for edge cases: leading/trailing newlines, indentation, multiple tables, and non-TableTest triple-quoted strings.
+- [x] Add tests for edge cases: leading/trailing newlines, indentation, multiple tables, and non-TableTest triple-quoted strings.
 - [x] Add parsing for comments/blank lines so formatter can preserve them.
 - [x] Add parsing for collections and quoted values to enable best-effort normalisation.
 
@@ -39,16 +39,16 @@
 - [x] Ensure highlighting activates only inside the TableTest string literal, not across the whole annotation argument list.
 - [x] Disambiguate list vs map: both use `[...]` in the grammar; currently both patterns overlap.
 - [x] Add scopes for header row vs data rows (no semantic tokens implemented yet).
-- [ ] Expand grammar tests further using the existing `vscode-tmgrammar-test` harness (additional Java/Kotlin edge cases).
+- [x] Expand grammar tests further using the existing `vscode-tmgrammar-test` harness (additional Java/Kotlin edge cases).
 - [ ] Kotlin: validate raw-string edge cases and decide if Java/Kotlin terminator rules should diverge (TextMate injection now enabled).
 - [ ] Edge case: Kotlin raw strings treat backslash literally; we currently avoid terminating on `\"""`, which can ignore an actual terminator in invalid Kotlin strings. Acceptable for now.
-- [ ] Allow comments between `@TableTest(` and opening `"""` when detecting the implicit value.
+- [x] Allow line comments (`//`) between `@TableTest(` and opening `"""` when detecting the implicit value.
 
 ## Automated tests
 - [x] Create formatter unit tests in TypeScript and wire them into `npm test`.
 - [x] Add syntax highlighting tests (golden scopes) for Java and Kotlin samples.
 - [x] Wire grammar tests into `npm test`.
-- [ ] Add dedicated extraction tests for `extractTripleQuotedTables` (start/end positions, indentation, multiple tables, implicit vs named `value`).
+- [x] Add dedicated extraction tests for `extractTripleQuotedTables` (start/end positions, indentation, multiple tables, implicit vs named `value`).
 - [x] Add formatter tests for collection spacing.
 - [x] Add formatter tests for Unicode width alignment (CJK/emoji).
 - [ ] Add CI workflow to run tests on each push (optional but recommended).
