@@ -23,7 +23,7 @@
       "properties": {
         "tabletest.format.extraIndentLevel": {
           "type": "integer",
-          "default": 0,
+          "default": 1,
           "minimum": 0,
           "description": "Additional indent levels to add inside formatted Java/Kotlin TableTest triple-quoted strings. Indent width follows editor formatting options (including EditorConfig-applied indentation)."
         }

@@ -70,8 +70,8 @@ suite("TableTest formatter integration", () => {
 
     const expected = [
       "@TableTest(\"\"\"",
-      "a | b",
-      "1 | 22",
+      "    a | b",
+      "    1 | 22",
       "\"\"\")"
     ].join("\n");
 
@@ -100,8 +100,8 @@ suite("TableTest formatter integration", () => {
     const expected = [
       "@TableTest(",
       "\"\"\"",
-      "foo | bar",
-      "1   | 22",
+      "    foo | bar",
+      "    1   | 22",
       "\"\"\"",
       ")"
     ].join("\n");
@@ -120,8 +120,8 @@ suite("TableTest formatter integration", () => {
 
     const expected = [
       "@TableTest(\"\"\"",
-      "a     | b",
-      "\"x|y\" | z",
+      "    a     | b",
+      "    \"x|y\" | z",
       "\"\"\")"
     ].join("\n");
 
@@ -130,15 +130,15 @@ suite("TableTest formatter integration", () => {
   });
 
   test("applies configured extra indent levels in Java formatting", async () => {
-    await withExtraIndentLevel(1, async () => {
+    await withExtraIndentLevel(2, async () => {
       const input = [
         "@TableTest(\"\"\"a|b",
         "1|22\"\"\")"
       ].join("\n");
 
       const expected = [
-        "@TableTest(\"\"\"    a | b",
-        "    1 | 22\"\"\")"
+        "@TableTest(\"\"\"        a | b",
+        "        1 | 22\"\"\")"
       ].join("\n");
 
       const actual = await formatDocument("java", input);

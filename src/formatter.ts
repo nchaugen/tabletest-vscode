@@ -63,7 +63,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
 
   private resolveExtraIndent(document: vscode.TextDocument, options: vscode.FormattingOptions): string {
     const config = vscode.workspace.getConfiguration("tabletest", document.uri);
-    const configuredLevels = config.get<number>("format.extraIndentLevel", 0);
+    const configuredLevels = config.get<number>("format.extraIndentLevel", 1);
     const levels = Number.isFinite(configuredLevels) ? Math.max(0, Math.floor(configuredLevels)) : 0;
     if (levels === 0) {
       return "";
