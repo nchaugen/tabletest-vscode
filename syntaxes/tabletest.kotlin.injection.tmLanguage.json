@@ -92,7 +92,7 @@
       ]
     },
     "tableHeaderRow": {
-      "name": "meta.tabletest.header",
+      "name": "markup.heading.tabletest meta.tabletest.header",
       "begin": "(?<=\\\"\\\"\\\"\\n)",
       "end": "(?=\\\"\\\"\\\")|$",
       "patterns": [
@@ -100,7 +100,7 @@
       ]
     },
     "tableHeaderRowCrLf": {
-      "name": "meta.tabletest.header",
+      "name": "markup.heading.tabletest meta.tabletest.header",
       "begin": "(?<=\\\"\\\"\\\"\\r\\n)",
       "end": "(?=\\\"\\\"\\\")|$",
       "patterns": [

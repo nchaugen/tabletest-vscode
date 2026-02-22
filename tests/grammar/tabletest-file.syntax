@@ -1,6 +1,7 @@
 // SYNTAX TEST "source.tabletest" "TableTest .table"
 Scenario | "b" | 'c'
 // ^ meta.tabletest.header
+// ^ markup.heading.tabletest
 //       ^ keyword.operator.tabletest.pipe
 //         ^ string.quoted.double.tabletest
 //             ^ keyword.operator.tabletest.pipe

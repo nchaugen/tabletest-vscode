@@ -12,7 +12,7 @@
       ]
     },
     "tableHeaderRow": {
-      "name": "meta.tabletest.header",
+      "name": "markup.heading.tabletest meta.tabletest.header",
       "begin": "\\A",
       "end": "$",
       "patterns": [
