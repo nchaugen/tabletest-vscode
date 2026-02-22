@@ -246,3 +246,16 @@ test("applies base indent to formatted rows", () => {
   `);
   assert.strictEqual(formatTableString(input, "  "), expected);
 });
+
+test("does not insert extra blank lines for triple-quoted table content", () => {
+  const input = "\na|b\n1|22\n";
+  const expected = "\na | b\n1 | 22\n";
+  assert.strictEqual(formatTableString(input), expected);
+});
+
+test("is idempotent for triple-quoted table content", () => {
+  const input = "\na|b\n1|22\n";
+  const once = formatTableString(input);
+  const twice = formatTableString(once);
+  assert.strictEqual(twice, once);
+});

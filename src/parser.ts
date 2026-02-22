@@ -2,9 +2,6 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
   // Normalize CRLF -> LF
   const text = tableText.replace(/\r\n?/g, "\n");
 
-  const leadingNewline = text.startsWith("\n");
-  const trailingNewline = text.endsWith("\n");
-
   const lines = text.split("\n");
   const isBlankLine = (line: string): boolean => line.trim() === "";
   const isCommentLine = (line: string): boolean => line.trimStart().startsWith("//");
@@ -71,8 +68,7 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
   });
 
   // reapply base indentation and leading/trailing newlines
-  const reindented = outLines.map((l) => baseIndent + l).join("\n");
-  return (leadingNewline ? "\n" : "") + reindented + (trailingNewline ? "\n" : "");
+  return outLines.map((line) => baseIndent + line).join("\n");
 }
 
 type QuoteChar = "'" | "\"";

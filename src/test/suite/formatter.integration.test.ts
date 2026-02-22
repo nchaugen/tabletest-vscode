@@ -70,10 +70,8 @@ suite("TableTest formatter integration", () => {
 
     const expected = [
       "@TableTest(\"\"\"",
-      "",
       "a | b",
       "1 | 22",
-      "",
       "\"\"\")"
     ].join("\n");
 
@@ -102,10 +100,8 @@ suite("TableTest formatter integration", () => {
     const expected = [
       "@TableTest(",
       "\"\"\"",
-      "",
       "foo | bar",
       "1   | 22",
-      "",
       "\"\"\"",
       ")"
     ].join("\n");
@@ -124,10 +120,8 @@ suite("TableTest formatter integration", () => {
 
     const expected = [
       "@TableTest(\"\"\"",
-      "",
       "a     | b",
       "\"x|y\" | z",
-      "",
       "\"\"\")"
     ].join("\n");
 
