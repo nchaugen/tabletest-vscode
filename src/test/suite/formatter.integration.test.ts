@@ -2,6 +2,11 @@ import * as assert from "node:assert/strict";
 import * as vscode from "vscode";
 import { suite, test } from "mocha";
 
+async function hasLanguage(language: string): Promise<boolean> {
+  const languages = await vscode.languages.getLanguages();
+  return languages.includes(language);
+}
+
 async function formatDocument(language: "java" | "kotlin", content: string): Promise<string> {
   const extension = vscode.extensions.getExtension("nchaugen.tabletest");
   await extension?.activate();
@@ -39,7 +44,12 @@ suite("TableTest formatter integration", () => {
     assert.strictEqual(actual, expected);
   });
 
-  test("formats a Kotlin table", async () => {
+  test("formats a Kotlin table", async function () {
+    if (!(await hasLanguage("kotlin"))) {
+      this.skip();
+      return;
+    }
+
     const input = [
       "@TableTest(",
       "\"\"\"",

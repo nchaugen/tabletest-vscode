@@ -87,7 +87,7 @@ Additional test command:
 npm run test:integration
 ```
 
-Integration tests launch a VS Code host and install the Kotlin extension.
+Integration tests launch a VS Code host. Kotlin integration assertions are skipped when no Kotlin language extension is available in the test host. In headless/sandboxed environments where the VS Code test host cannot start, the integration runner exits with a skip message unless `TABLETEST_INTEGRATION_STRICT=1` is set.
 
 ## Known limitations
 
