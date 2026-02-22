@@ -12,3 +12,5 @@ Scenario | "b" | 'c'
 // ^ meta.tabletest.list
 //       ^ meta.tabletest.set
 //                ^ meta.tabletest.map
+  // table comment
+//   ^ comment.line.double-slash.tabletest

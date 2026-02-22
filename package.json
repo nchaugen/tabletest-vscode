@@ -16,8 +16,11 @@
   "keywords": [
     "tabletest",
     "junit",
+    "bdd",
+    "tdd",
     "data-driven testing",
     "parameterized tests",
+    "table-driven testing",
     "table",
     "formatter",
     "syntax highlighting",
