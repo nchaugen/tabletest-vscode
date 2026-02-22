@@ -8,3 +8,7 @@ public class SampleTableTest {
     )
     public void testSomething() {}
 }
+
+@interface TableTest {
+    String value();
+}

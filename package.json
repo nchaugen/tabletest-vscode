@@ -10,10 +10,6 @@
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [
-    "onCommand:tabletest.formatAllTables",
-    "onLanguage:tabletest"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "configurationDefaults": {
