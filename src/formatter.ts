@@ -28,7 +28,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     range?: vscode.Range
   ): vscode.TextEdit[] {
     const extraIndent = this.resolveExtraIndent(document, options);
-    const tabSize = this.resolveTabSize(options);
+    const tabSize = this.resolveTabSize(document, options);
     const tableEdits = calculateDocumentEdits(
       document,
       (content, indent) => formatTableString(content, indent, tabSize),
@@ -47,7 +47,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
 
   private formatTableDocument(document: vscode.TextDocument, options: vscode.FormattingOptions): vscode.TextEdit[] {
     const original = document.getText();
-    const formatted = formatTableString(original, "", this.resolveTabSize(options));
+    const formatted = formatTableString(original, "", this.resolveTabSize(document, options));
     if (formatted === original) return [];
     const lastLine = Math.max(document.lineCount - 1, 0);
     const lastCharacter = document.lineAt(lastLine).text.length;
@@ -70,12 +70,17 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
       return "";
     }
 
-    const tabSize = this.resolveTabSize(options);
+    const tabSize = this.resolveTabSize(document, options);
     const unit = options.insertSpaces ? " ".repeat(tabSize) : "\t";
     return unit.repeat(levels);
   }
 
-  private resolveTabSize(options: vscode.FormattingOptions): number {
+  private resolveTabSize(document: vscode.TextDocument, options: vscode.FormattingOptions): number {
+    const editorConfig = vscode.workspace.getConfiguration("editor", document.uri);
+    const configuredTabSize = editorConfig.get<unknown>("tabSize");
+    if (typeof configuredTabSize === "number" && Number.isFinite(configuredTabSize)) {
+      return Math.max(1, Math.floor(configuredTabSize));
+    }
     return Number.isFinite(options.tabSize) ? Math.max(1, Math.floor(options.tabSize)) : 4;
   }
 
