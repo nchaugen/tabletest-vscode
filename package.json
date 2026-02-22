@@ -44,7 +44,13 @@
         "scopeName": "tabletest.injection",
         "path": "./syntaxes/tabletest.injection.tmLanguage.json",
         "injectTo": [
-          "source.java",
+          "source.java"
+        ]
+      },
+      {
+        "scopeName": "tabletest.kotlin.injection",
+        "path": "./syntaxes/tabletest.kotlin.injection.tmLanguage.json",
+        "injectTo": [
           "source.kotlin"
         ]
       }
@@ -58,7 +64,7 @@
     "test": "npm run test:formatter && npm run test:grammar",
     "test:formatter": "tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
     "test:integration": "npm run compile && node ./out/test/runTest.js",
-    "test:grammar": "vscode-tmgrammar-test -g ./syntaxes/tabletest.injection.tmLanguage.json -g ./syntaxes/tabletest.tmLanguage.json \"tests/grammar/**/*.syntax\"",
+    "test:grammar": "vscode-tmgrammar-test -g ./syntaxes/tabletest.injection.tmLanguage.json -g ./syntaxes/tabletest.kotlin.injection.tmLanguage.json -g ./syntaxes/tabletest.tmLanguage.json \"tests/grammar/**/*.syntax\"",
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {

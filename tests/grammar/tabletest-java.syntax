@@ -37,9 +37,9 @@ class ValueArgument {
 
 class EscapedTerminator {
   @TableTest("""
-    a | \\\"\"\" | b
+    a | \""" | b
 //    ^ keyword.operator.tabletest.pipe
-//               ^ keyword.operator.tabletest.pipe
+//           ^ keyword.operator.tabletest.pipe
     c | d
 //    ^ keyword.operator.tabletest.pipe
     """)

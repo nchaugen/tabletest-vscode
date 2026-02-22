@@ -1,4 +1,4 @@
-// SYNTAX TEST "tabletest.injection" "TableTest Kotlin"
+// SYNTAX TEST "tabletest.kotlin.injection" "TableTest Kotlin"
 class Sample {
   @TableTest(
     """
@@ -37,11 +37,11 @@ class ValueArgument {
 
 class EscapedTerminator {
   @TableTest("""
-    a | \\\"\"\" | b
+    a | \""" | b
 //    ^ keyword.operator.tabletest.pipe
-//               ^ keyword.operator.tabletest.pipe
+//           ^ - keyword.operator.tabletest.pipe
     c | d
-//    ^ keyword.operator.tabletest.pipe
+//    ^ - keyword.operator.tabletest.pipe
     """)
   fun testEscapedTerminator() {}
 }

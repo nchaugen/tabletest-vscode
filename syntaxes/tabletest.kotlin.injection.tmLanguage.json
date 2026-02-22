@@ -1,6 +1,6 @@
 {
-  "scopeName": "tabletest.injection",
-  "injectionSelector": "L:source.java",
+  "scopeName": "tabletest.kotlin.injection",
+  "injectionSelector": "L:source.kotlin",
   "patterns": [
     { "include": "#tabletestImplicitAfterAnnotation" },
     { "include": "#tabletestAnnotationString" }
@@ -8,7 +8,7 @@
   "repository": {
     "tabletestImplicitAfterAnnotation": {
       "name": "meta.tabletest.block",
-      "begin": "(@TableTest)\\s*\\(\\s*(?<!\\\\)(\"\"\")",
+      "begin": "(@TableTest)\\s*\\(\\s*(\"\"\")",
       "beginCaptures": {
         "1": {
           "name": "storage.type.annotation.tabletest"
@@ -17,7 +17,7 @@
           "name": "punctuation.definition.string.begin.tabletest"
         }
       },
-      "end": "(?<!\\\\)(\"\"\")",
+      "end": "(\"\"\")",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.string.end.tabletest"
@@ -42,13 +42,13 @@
     },
     "tabletestImplicitValueString": {
       "name": "meta.tabletest.block",
-      "begin": "^[ \\t]*(?!\\w+\\s*=)(?<!\\\\)(\"\"\")",
+      "begin": "^[ \\t]*(?!\\w+\\s*=)(\"\"\")",
       "beginCaptures": {
         "1": {
           "name": "punctuation.definition.string.begin.tabletest"
         }
       },
-      "end": "(?<!\\\\)(\"\"\")",
+      "end": "(\"\"\")",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.string.end.tabletest"
@@ -68,13 +68,13 @@
     },
     "tabletestBlock": {
       "name": "meta.tabletest.block",
-      "begin": "(?<!\\\\)(\"\"\")",
+      "begin": "(\"\"\")",
       "beginCaptures": {
         "1": {
           "name": "punctuation.definition.string.begin.tabletest"
         }
       },
-      "end": "(?<!\\\\)(\"\"\")",
+      "end": "(\"\"\")",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.string.end.tabletest"
@@ -94,7 +94,7 @@
     "tableHeaderRow": {
       "name": "meta.tabletest.header",
       "begin": "(?<=\\\"\\\"\\\"\\n)",
-      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "end": "(?=\\\"\\\"\\\")|$",
       "patterns": [
         { "include": "#tableCell" }
       ]
@@ -102,7 +102,7 @@
     "tableHeaderRowCrLf": {
       "name": "meta.tabletest.header",
       "begin": "(?<=\\\"\\\"\\\"\\r\\n)",
-      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "end": "(?=\\\"\\\"\\\")|$",
       "patterns": [
         { "include": "#tableCell" }
       ]
@@ -110,7 +110,7 @@
     "tableRow": {
       "name": "meta.tabletest.row",
       "begin": "^",
-      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "end": "(?=\\\"\\\"\\\")|$",
       "patterns": [
         { "include": "#tableCell" }
       ]
@@ -122,14 +122,14 @@
           "name": "keyword.operator.tabletest.pipe"
         }
       },
-      "end": "(?=\\|)|(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "end": "(?=\\|)|(?=\\\"\\\"\\\")|$",
       "patterns": [
         { "include": "#stringDouble" },
         { "include": "#stringSingle" },
         { "include": "#mapLiteral" },
         { "include": "#listLiteral" },
         { "include": "#setLiteral" },
-        { "name": "string.unquoted.tabletest", "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^|\\r\\n])+" }
+        { "name": "string.unquoted.tabletest", "match": "(?:(?!\\\"\\\"\\\")[^|\\r\\n])+" }
       ]
     },
     "stringDouble": {
@@ -148,7 +148,7 @@
           "name": "punctuation.section.brackets.begin.tabletest"
         }
       },
-      "end": "(?:\\]|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "end": "(?:\\]|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
           "name": "punctuation.section.brackets.end.tabletest"
@@ -167,7 +167,7 @@
         },
         {
           "name": "string.unquoted.tabletest",
-          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,\\]\\r\\n])+"
+          "match": "(?:(?!\\\"\\\"\\\")[^,\\]\\r\\n])+"
         }
       ]
     },
@@ -179,7 +179,7 @@
           "name": "punctuation.section.braces.begin.tabletest"
         }
       },
-      "end": "(?:\\}|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "end": "(?:\\}|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
           "name": "punctuation.section.braces.end.tabletest"
@@ -198,7 +198,7 @@
         },
         {
           "name": "string.unquoted.tabletest",
-          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,\\}\\r\\n])+"
+          "match": "(?:(?!\\\"\\\"\\\")[^,\\}\\r\\n])+"
         }
       ]
     },
@@ -210,7 +210,7 @@
           "name": "punctuation.section.brackets.begin.tabletest"
         }
       },
-      "end": "(?:\\]|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "end": "(?:\\]|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
           "name": "punctuation.section.brackets.end.tabletest"
@@ -233,7 +233,7 @@
         },
         {
           "name": "string.unquoted.tabletest",
-          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,:\\]\\r\\n])+"
+          "match": "(?:(?!\\\"\\\"\\\")[^,:\\]\\r\\n])+"
         }
       ]
     }
