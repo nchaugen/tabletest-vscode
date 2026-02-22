@@ -16,6 +16,11 @@ class Sample {
 //             ^ meta.tabletest.set
 //                       ^ meta.tabletest.map
 //                     ^ support.type.property-name.tabletest
+    [x: [1, 2]]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.map
+//      ^ meta.tabletest.list
+//        ^ punctuation.separator.comma.tabletest
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
