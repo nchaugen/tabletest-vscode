@@ -1,0 +1,12 @@
+// SYNTAX TEST "source.tabletest" "TableTest .table"
+Scenario | "b" | 'c'
+// ^ meta.tabletest.header
+//       ^ keyword.operator.tabletest.pipe
+//         ^ string.quoted.double.tabletest
+//             ^ keyword.operator.tabletest.pipe
+//               ^ string.quoted.single.tabletest
+[1, 2] | {x, y} | [k: v]
+// ^ meta.tabletest.row
+// ^ meta.tabletest.list
+//       ^ meta.tabletest.set
+//                ^ meta.tabletest.map

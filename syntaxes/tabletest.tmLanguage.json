@@ -1,0 +1,153 @@
+{
+  "scopeName": "source.tabletest",
+  "name": "TableTest",
+  "patterns": [
+    { "include": "#table" }
+  ],
+  "repository": {
+    "table": {
+      "patterns": [
+        { "include": "#tableHeaderRow" },
+        { "include": "#tableRow" }
+      ]
+    },
+    "tableHeaderRow": {
+      "name": "meta.tabletest.header",
+      "begin": "\\A",
+      "end": "$",
+      "patterns": [
+        { "include": "#tableCell" }
+      ]
+    },
+    "tableRow": {
+      "name": "meta.tabletest.row",
+      "begin": "^",
+      "end": "$",
+      "patterns": [
+        { "include": "#tableCell" }
+      ]
+    },
+    "tableCell": {
+      "begin": "(^|\\|)\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.tabletest.pipe"
+        }
+      },
+      "end": "(?=\\|)|$",
+      "patterns": [
+        { "include": "#stringDouble" },
+        { "include": "#stringSingle" },
+        { "include": "#mapLiteral" },
+        { "include": "#listLiteral" },
+        { "include": "#setLiteral" },
+        { "name": "string.unquoted.tabletest", "match": "[^|\\r\\n]+" }
+      ]
+    },
+    "stringDouble": {
+      "name": "string.quoted.double.tabletest",
+      "match": "\\\"[^\\\"\\r\\n]*\\\""
+    },
+    "stringSingle": {
+      "name": "string.quoted.single.tabletest",
+      "match": "'[^'\\r\\n]*'"
+    },
+    "listLiteral": {
+      "name": "meta.tabletest.list",
+      "begin": "\\[(?![^\\]\\r\\n]*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.begin.tabletest"
+        }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "[^,\\]\\r\\n]+"
+        }
+      ]
+    },
+    "setLiteral": {
+      "name": "meta.tabletest.set",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.braces.begin.tabletest"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.braces.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "[^,\\}\\r\\n]+"
+        }
+      ]
+    },
+    "mapLiteral": {
+      "name": "meta.tabletest.map",
+      "begin": "\\[(?=[^\\]\\r\\n]*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.begin.tabletest"
+        }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "name": "keyword.operator.assignment.tabletest",
+          "match": ":"
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "[^,:\\]\\r\\n]+"
+        }
+      ]
+    }
+  }
+}

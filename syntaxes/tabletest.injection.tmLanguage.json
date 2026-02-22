@@ -1,0 +1,241 @@
+{
+  "scopeName": "tabletest.injection",
+  "injectionSelector": "L:source.java, L:source.kotlin",
+  "patterns": [
+    { "include": "#tabletestImplicitAfterAnnotation" },
+    { "include": "#tabletestAnnotationString" }
+  ],
+  "repository": {
+    "tabletestImplicitAfterAnnotation": {
+      "name": "meta.tabletest.block",
+      "begin": "(@TableTest)\\s*\\(\\s*(?<!\\\\)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.annotation.tabletest"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\"\"\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#table" }
+      ]
+    },
+    "tabletestAnnotationString": {
+      "begin": "(@TableTest)\\s*\\(",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.annotation.tabletest"
+        }
+      },
+      "end": "\\)",
+      "patterns": [
+        { "include": "#tabletestValueArgument" },
+        { "include": "#tabletestImplicitValueString" }
+      ]
+    },
+    "tabletestImplicitValueString": {
+      "name": "meta.tabletest.block",
+      "begin": "^[ \\t]*(?!\\w+\\s*=)(?<!\\\\)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\"\"\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#table" }
+      ]
+    },
+    "tabletestValueArgument": {
+      "name": "meta.tabletest.value-argument",
+      "begin": "\\bvalue\\s*=",
+      "end": "(?=,|\\))",
+      "patterns": [
+        { "include": "#tabletestBlock" }
+      ]
+    },
+    "tabletestBlock": {
+      "name": "meta.tabletest.block",
+      "begin": "(?<!\\\\)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\"\"\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#table" }
+      ]
+    },
+    "table": {
+      "patterns": [
+        { "include": "#tableHeaderRow" },
+        { "include": "#tableHeaderRowCrLf" },
+        { "include": "#tableRow" }
+      ]
+    },
+    "tableHeaderRow": {
+      "name": "meta.tabletest.header",
+      "begin": "(?<=\\\"\\\"\\\"\\n)",
+      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "patterns": [
+        { "include": "#tableCell" }
+      ]
+    },
+    "tableHeaderRowCrLf": {
+      "name": "meta.tabletest.header",
+      "begin": "(?<=\\\"\\\"\\\"\\r\\n)",
+      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "patterns": [
+        { "include": "#tableCell" }
+      ]
+    },
+    "tableRow": {
+      "name": "meta.tabletest.row",
+      "begin": "^",
+      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "patterns": [
+        { "include": "#tableCell" }
+      ]
+    },
+    "tableCell": {
+      "begin": "(^|\\|)\\s*(?!\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.tabletest.pipe"
+        }
+      },
+      "end": "(?=\\|)|(?=(?<!\\\\)\\\"\\\"\\\")|$",
+      "patterns": [
+        { "include": "#stringDouble" },
+        { "include": "#stringSingle" },
+        { "include": "#mapLiteral" },
+        { "include": "#listLiteral" },
+        { "include": "#setLiteral" },
+        { "name": "string.unquoted.tabletest", "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^|\\r\\n])+" }
+      ]
+    },
+    "stringDouble": {
+      "name": "string.quoted.double.tabletest",
+      "match": "\\\"[^\\\"\\r\\n]*\\\""
+    },
+    "stringSingle": {
+      "name": "string.quoted.single.tabletest",
+      "match": "'[^'\\r\\n]*'"
+    },
+    "listLiteral": {
+      "name": "meta.tabletest.list",
+      "begin": "\\[(?![^\\]\\r\\n]*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.begin.tabletest"
+        }
+      },
+      "end": "(?:\\]|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,\\]\\r\\n])+"
+        }
+      ]
+    },
+    "setLiteral": {
+      "name": "meta.tabletest.set",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.braces.begin.tabletest"
+        }
+      },
+      "end": "(?:\\}|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.braces.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,\\}\\r\\n])+"
+        }
+      ]
+    },
+    "mapLiteral": {
+      "name": "meta.tabletest.map",
+      "begin": "\\[(?=[^\\]\\r\\n]*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.begin.tabletest"
+        }
+      },
+      "end": "(?:\\]|(?=(?<!\\\\)\\\"\\\"\\\"))",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.tabletest",
+          "match": ","
+        },
+        {
+          "name": "keyword.operator.assignment.tabletest",
+          "match": ":"
+        },
+        {
+          "include": "#stringDouble"
+        },
+        {
+          "include": "#stringSingle"
+        },
+        {
+          "name": "string.unquoted.tabletest",
+          "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^,:\\]\\r\\n])+"
+        }
+      ]
+    }
+  }
+}

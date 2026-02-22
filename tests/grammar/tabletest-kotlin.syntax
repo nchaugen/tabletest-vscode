@@ -1,0 +1,55 @@
+// SYNTAX TEST "tabletest.injection" "TableTest Kotlin"
+class Sample {
+  @TableTest(
+    """
+    a | "b" | 'c'
+//  ^ meta.tabletest.header
+//    ^ keyword.operator.tabletest.pipe
+//      ^ string.quoted.double.tabletest
+//          ^ keyword.operator.tabletest.pipe
+//            ^ string.quoted.single.tabletest
+    [1, 2] | {x, y} | [k: v]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.list
+//             ^ meta.tabletest.set
+//                       ^ meta.tabletest.map
+    """,
+    other = "not a table"
+  )
+  fun testSomething() {}
+}
+
+class SameLineStart {
+  @TableTest("""
+    a | b
+//    ^ keyword.operator.tabletest.pipe
+    """)
+  fun testSameLineStart() {}
+}
+
+class ValueArgument {
+  @TableTest(other = "ignore", value = """
+    a | b
+//    ^ keyword.operator.tabletest.pipe
+    """, another = "123")
+  fun testValueArgument() {}
+}
+
+class EscapedTerminator {
+  @TableTest("""
+    a | \\\"\"\" | b
+//    ^ keyword.operator.tabletest.pipe
+//               ^ keyword.operator.tabletest.pipe
+    c | d
+//    ^ keyword.operator.tabletest.pipe
+    """)
+  fun testEscapedTerminator() {}
+}
+
+class SameLineClose {
+  @TableTest("""
+    a | b """
+//    ^ keyword.operator.tabletest.pipe
+  )
+  fun testSameLineClose() {}
+}

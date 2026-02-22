@@ -1,0 +1,27 @@
+node_modules/
+
+# Build output
+out/
+out-tests/
+*.tsbuildinfo
+
+# Packaged extension artefacts
+*.vsix
+
+# VS Code test runner downloads/state
+.vscode-test/
+
+# Logs and temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+
+# OS-specific noise
+.DS_Store
+Thumbs.db
+
+# Local IDE/project files
+.idea/

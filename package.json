@@ -1,0 +1,81 @@
+{
+  "name": "tabletest",
+  "displayName": "TableTest",
+  "description": "Syntax highlighting for TableTest tables in Java/Kotlin multiline strings.",
+  "version": "0.0.2",
+  "publisher": "nchaugen",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onCommand:tabletest.formatAllTables",
+    "onLanguage:tabletest"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configurationDefaults": {
+      "[tabletest]": {
+        "editor.defaultFormatter": "nchaugen.tabletest"
+      }
+    },
+    "languages": [
+      {
+        "id": "tabletest",
+        "aliases": [
+          "TableTest"
+        ],
+        "extensions": [
+          ".table"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "tabletest.formatAllTables",
+        "title": "TableTest: Format All Tables in Document"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tabletest",
+        "scopeName": "source.tabletest",
+        "path": "./syntaxes/tabletest.tmLanguage.json"
+      },
+      {
+        "scopeName": "tabletest.injection",
+        "path": "./syntaxes/tabletest.injection.tmLanguage.json",
+        "injectTo": [
+          "source.java",
+          "source.kotlin"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "test": "npm run test:formatter && npm run test:grammar",
+    "test:formatter": "tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
+    "test:integration": "npm run compile && node ./out/test/runTest.js",
+    "test:grammar": "vscode-tmgrammar-test -g ./syntaxes/tabletest.injection.tmLanguage.json -g ./syntaxes/tabletest.tmLanguage.json \"tests/grammar/**/*.syntax\"",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.10.0",
+    "@types/mocha": "^10.0.7",
+    "@vscode/test-electron": "^2.4.1",
+    "typescript": "^5.4.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@vscode/vsce": "^3.0.0",
+    "mocha": "^10.4.0",
+    "vscode-tmgrammar-test": "^0.1.3"
+  }
+}
