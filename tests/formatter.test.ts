@@ -164,6 +164,36 @@ const cases: FormatCase[] = [
     `)
   },
   {
+    name: "emoji grapheme alignment",
+    input: table(`
+      id|i|x
+      a|👩‍💻|1
+      b|👋🏽|2
+      c|1️⃣|3
+    `),
+    expected: table(`
+      id | i<s> | x
+      a<s> | 👩‍💻 | 1
+      b<s> | 👋🏽 | 2
+      c<s> | 1️⃣ | 3
+    `)
+  },
+  {
+    name: "tab values align using tab stops",
+    input: table(`
+      k|v|n
+      plain|ab|2
+      one tab|a	b|3
+      two tabs|a		b|4
+    `),
+    expected: [
+      "k        | v          | n",
+      "plain    | ab         | 2",
+      "one tab  | a\tb     | 3",
+      "two tabs | a\t\tb | 4"
+    ].join("\n")
+  },
+  {
     name: "unmatched quotes do not swallow pipes",
     input: table(`
       aa|b|c

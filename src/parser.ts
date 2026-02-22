@@ -1,4 +1,4 @@
-export function formatTableString(tableText: string, baseIndent: string = ""): string {
+export function formatTableString(tableText: string, baseIndent: string = "", tabSize: number = 4): string {
   // Normalize CRLF -> LF
   const text = tableText.replace(/\r\n?/g, "\n");
 
@@ -37,22 +37,15 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
   // Parse rows into cells
   const rows = lineInfos.flatMap((info) => (info.kind === "data" ? [info.cells] : []));
 
-  // Compute column widths based on columns that exist in each row
-  const colCount = Math.max(...rows.map((r) => r.length));
-  const widths: number[] = new Array(colCount).fill(0);
-  rows.forEach((r) => {
-    for (let i = 0; i < r.length; i++) {
-      const cell = r[i] ?? "";
-      widths[i] = Math.max(widths[i] ?? 0, displayWidth(cell));
-    }
-  });
+  const lineStartColumn = displayWidth(baseIndent, tabSize);
+  const { widths, starts } = calculateColumnLayout(rows, tabSize, lineStartColumn);
 
   // Build padded lines
   const formattedRows = rows.map((r) => {
     const cells = [] as string[];
     for (let i = 0; i < r.length; i++) {
       const cell = r[i] ?? "";
-      const pad = Math.max(widths[i] - displayWidth(cell), 0);
+      const pad = Math.max((widths[i] ?? 0) - displayWidth(cell, tabSize, starts[i] ?? lineStartColumn), 0);
       cells.push(cell + " ".repeat(pad));
     }
     return cells.join(" | ");
@@ -339,19 +332,157 @@ function splitTopLevel(text: string, separator: "," | ":"): string[] | null {
   return parts;
 }
 
-export function displayWidth(value: string): number {
-  let width = 0;
-  for (const char of value) {
-    const codePoint = char.codePointAt(0);
-    if (codePoint === undefined) continue;
-    if (isZeroWidth(codePoint)) continue;
-    if (isExtendedPictographic(char) || isFullWidthCodePoint(codePoint)) {
-      width += 2;
-    } else {
-      width += 1;
+type ColumnLayout = {
+  widths: number[];
+  starts: number[];
+};
+
+function calculateColumnLayout(rows: string[][], tabSize: number, lineStartColumn: number): ColumnLayout {
+  const colCount = Math.max(...rows.map((row) => row.length));
+  const widths: number[] = new Array(colCount).fill(0);
+  const starts: number[] = new Array(colCount).fill(lineStartColumn);
+
+  let currentColumnStart = lineStartColumn;
+  for (let columnIndex = 0; columnIndex < colCount; columnIndex += 1) {
+    starts[columnIndex] = currentColumnStart;
+
+    let maxWidth = 0;
+    for (const row of rows) {
+      const cell = row[columnIndex];
+      if (cell === undefined) continue;
+      maxWidth = Math.max(maxWidth, displayWidth(cell, tabSize, currentColumnStart));
     }
+
+    widths[columnIndex] = maxWidth;
+    currentColumnStart += maxWidth + 3;
   }
+
+  return { widths, starts };
+}
+
+export function displayWidth(value: string, tabSize: number = 4, startColumn: number = 0): number {
+  const resolvedTabSize = Number.isFinite(tabSize) ? Math.max(1, Math.floor(tabSize)) : 4;
+  const resolvedStartColumn = Number.isFinite(startColumn) ? Math.max(0, Math.floor(startColumn)) : 0;
+  const graphemes = splitGraphemes(value);
+  let column = resolvedStartColumn;
+  for (const grapheme of graphemes) {
+    if (grapheme === "\t") {
+      column += tabAdvance(column, resolvedTabSize);
+      continue;
+    }
+    column += displayWidthForGrapheme(grapheme);
+  }
+  return column - resolvedStartColumn;
+}
+
+type GraphemeSegment = {
+  segment: string;
+};
+
+type GraphemeSegmenter = {
+  segment(value: string): Iterable<GraphemeSegment>;
+};
+
+const segmenterConstructor = (Intl as unknown as {
+  Segmenter?: new (
+    locales?: string | string[],
+    options?: { granularity?: "grapheme" | "word" | "sentence" }
+  ) => GraphemeSegmenter;
+}).Segmenter;
+
+const graphemeSegmenter: GraphemeSegmenter | null = segmenterConstructor
+  ? new segmenterConstructor(undefined, { granularity: "grapheme" })
+  : null;
+
+function splitGraphemes(value: string): string[] {
+  if (!graphemeSegmenter) {
+    return Array.from(value);
+  }
+
+  const segments = graphemeSegmenter.segment(value);
+  const graphemes: string[] = [];
+  for (const segment of segments) {
+    graphemes.push(segment.segment);
+  }
+  return graphemes;
+}
+
+function displayWidthForGrapheme(grapheme: string): number {
+  const codePoints = Array.from(grapheme)
+    .map((char) => char.codePointAt(0))
+    .filter((codePoint): codePoint is number => codePoint !== undefined);
+
+  if (codePoints.length === 0) return 0;
+  if (isEmojiGrapheme(grapheme, codePoints)) {
+    return 2;
+  }
+
+  let width = 0;
+  for (const codePoint of codePoints) {
+    if (isInvisibleCodePoint(codePoint)) continue;
+    width += isFullWidthCodePoint(codePoint) ? 2 : 1;
+  }
+
   return width;
+}
+
+function tabAdvance(column: number, tabSize: number): number {
+  const remainder = column % tabSize;
+  return remainder === 0 ? tabSize : tabSize - remainder;
+}
+
+function isEmojiGrapheme(grapheme: string, codePoints: number[]): boolean {
+  if (isKeycapSequence(codePoints)) {
+    return true;
+  }
+  if (codePoints.some((codePoint) => isRegionalIndicator(codePoint))) {
+    return true;
+  }
+  if (grapheme.includes("\u200d") && containsEmojiCodePoint(grapheme)) {
+    return true;
+  }
+  if (codePoints.some((codePoint) => isEmojiModifier(codePoint))) {
+    return true;
+  }
+  if (containsEmojiPresentationCodePoint(grapheme)) {
+    return true;
+  }
+  if (hasEmojiVariationSelector(codePoints) && containsExtendedPictographicCodePoint(grapheme)) {
+    return true;
+  }
+  return false;
+}
+
+function containsEmojiCodePoint(value: string): boolean {
+  return containsExtendedPictographicCodePoint(value) || containsEmojiPresentationCodePoint(value);
+}
+
+function containsExtendedPictographicCodePoint(value: string): boolean {
+  return extendedPictographic.test(value);
+}
+
+function containsEmojiPresentationCodePoint(value: string): boolean {
+  return emojiPresentation.test(value);
+}
+
+function hasEmojiVariationSelector(codePoints: number[]): boolean {
+  return codePoints.includes(0xfe0f);
+}
+
+function isInvisibleCodePoint(codePoint: number): boolean {
+  return (
+    isControlCodePoint(codePoint) ||
+    isZeroWidth(codePoint) ||
+    isEmojiModifier(codePoint) ||
+    isTagCodePoint(codePoint)
+  );
+}
+
+function isControlCodePoint(codePoint: number): boolean {
+  return (
+    ((codePoint >= 0x0000 && codePoint <= 0x001f) && codePoint !== 0x0009) ||
+    (codePoint >= 0x007f && codePoint <= 0x009f)
+  );
 }
 
 function isZeroWidth(codePoint: number): boolean {
@@ -360,18 +491,38 @@ function isZeroWidth(codePoint: number): boolean {
     codePoint === 0x200b || // zero width space
     codePoint === 0x200c || // zero width non-joiner
     codePoint === 0x200d || // zero width joiner
-    (codePoint >= 0xfe00 && codePoint <= 0xfe0f) // variation selectors
+    (codePoint >= 0xfe00 && codePoint <= 0xfe0f) || // variation selectors
+    (codePoint >= 0xe0100 && codePoint <= 0xe01ef) // variation selectors supplement
   );
 }
 
+const nonSpacingMark = /\p{Nonspacing_Mark}/u;
+const enclosingMark = /\p{Enclosing_Mark}/u;
+
 function isCombiningMark(codePoint: number): boolean {
-  return (
-    (codePoint >= 0x0300 && codePoint <= 0x036f) ||
-    (codePoint >= 0x1ab0 && codePoint <= 0x1aff) ||
-    (codePoint >= 0x1dc0 && codePoint <= 0x1dff) ||
-    (codePoint >= 0x20d0 && codePoint <= 0x20ff) ||
-    (codePoint >= 0xfe20 && codePoint <= 0xfe2f)
-  );
+  const value = String.fromCodePoint(codePoint);
+  return nonSpacingMark.test(value) || enclosingMark.test(value);
+}
+
+function isEmojiModifier(codePoint: number): boolean {
+  return codePoint >= 0x1f3fb && codePoint <= 0x1f3ff;
+}
+
+function isTagCodePoint(codePoint: number): boolean {
+  return codePoint >= 0xe0020 && codePoint <= 0xe007f;
+}
+
+function isRegionalIndicator(codePoint: number): boolean {
+  return codePoint >= 0x1f1e6 && codePoint <= 0x1f1ff;
+}
+
+function isKeycapSequence(codePoints: number[]): boolean {
+  if (!codePoints.includes(0x20e3)) {
+    return false;
+  }
+
+  const first = codePoints[0] ?? -1;
+  return (first >= 0x30 && first <= 0x39) || first === 0x23 || first === 0x2a;
 }
 
 function isFullWidthCodePoint(codePoint: number): boolean {
@@ -397,10 +548,7 @@ function isFullWidthCodePoint(codePoint: number): boolean {
 }
 
 const extendedPictographic = /\p{Extended_Pictographic}/u;
-
-function isExtendedPictographic(value: string): boolean {
-  return extendedPictographic.test(value);
-}
+const emojiPresentation = /\p{Emoji_Presentation}/u;
 
 type ExtractedTable = {
   start: number;

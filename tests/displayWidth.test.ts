@@ -36,7 +36,12 @@ const widthTable = table(`
   Korean greeting              | 안녕하세요              | 10
   Emoji grinning face          | 😀                  | 2
   Emoji waving hand            | 👋                  | 2
+  Emoji waving hand skin tone  | 👋🏽                | 2
   Emoji coffee                 | ☕                  | 2
+  Emoji technologist           | 👩‍💻                | 2
+  Emoji family ZWJ             | 👨‍👩‍👧‍👦            | 2
+  Emoji keycap                 | 1️⃣                | 2
+  Flag emoji                   | 🇺🇸                | 2
   Mixed ASCII and emoji        | Hello 👋 World      | 14
   Mixed text with emoji        | Café ☕ tastes good | 19
   Scandinavian æ               | æ                  | 1
@@ -80,4 +85,22 @@ test("calculates display width for literal table values", () => {
       `Expected width for "${textValue}" to be ${expectedWidth} (raw ${expected})`
     );
   }
+});
+
+test("expands tab characters to tab stops", () => {
+  assert.strictEqual(displayWidth("\t"), 4);
+  assert.strictEqual(displayWidth("a\tb"), 5);
+  assert.strictEqual(displayWidth("ab\tb"), 5);
+  assert.strictEqual(displayWidth("abcd\tb"), 9);
+});
+
+test("supports custom tab size in width calculation", () => {
+  assert.strictEqual(displayWidth("a\tb", 8), 9);
+  assert.strictEqual(displayWidth("abcd\tb", 8), 9);
+});
+
+test("respects start column when expanding tabs", () => {
+  assert.strictEqual(displayWidth("\t", 4, 0), 4);
+  assert.strictEqual(displayWidth("\t", 4, 2), 2);
+  assert.strictEqual(displayWidth("a\tb", 4, 1), 4);
 });
