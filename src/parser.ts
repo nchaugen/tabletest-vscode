@@ -28,7 +28,7 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
 
   const lineInfos = strippedLines.map((line) => {
     if (isBlankLine(line) || isCommentLine(line)) {
-      return { kind: "raw" as const, text: line };
+      return { kind: "raw" as const, text: line, isComment: isCommentLine(line) };
     }
     const cells = splitRow(line).map((p) => formatCellValue(p));
     return { kind: "data" as const, cells };
@@ -60,8 +60,19 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
 
   let rowIndex = 0;
   const trimTrailingWhitespace = (value: string): string => value.replace(/[ \t]+$/g, "");
+  const normaliseCommentIndent = (value: string): string => {
+    if (baseIndent === "") {
+      return trimTrailingWhitespace(value);
+    }
+    return trimTrailingWhitespace(value.trimStart());
+  };
   const outLines = lineInfos.map((info) => {
-    if (info.kind === "raw") return info.text;
+    if (info.kind === "raw") {
+      if (!info.isComment) {
+        return info.text;
+      }
+      return normaliseCommentIndent(info.text);
+    }
     const formatted = formattedRows[rowIndex];
     rowIndex += 1;
     return trimTrailingWhitespace(formatted);

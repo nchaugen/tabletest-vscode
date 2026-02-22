@@ -129,6 +129,33 @@ suite("TableTest formatter integration", () => {
     assert.strictEqual(actual, expected);
   });
 
+  test("does not add extra comment indentation when fixing under-indented rows", async () => {
+    const input = [
+      "@TableTest(\"\"\"",
+      "    // comment",
+      "a|b",
+      "1|22",
+      "\"\"\")"
+    ].join("\n");
+
+    const expected = [
+      "@TableTest(\"\"\"",
+      "    // comment",
+      "    a | b",
+      "    1 | 22",
+      "\"\"\")"
+    ].join("\n");
+
+    const document = await openDocument("java", input);
+    await vscode.commands.executeCommand("tabletest.formatAllTables");
+    const afterFirstFormat = document.getText();
+    assert.strictEqual(afterFirstFormat, expected);
+
+    await vscode.commands.executeCommand("tabletest.formatAllTables");
+    const afterSecondFormat = document.getText();
+    assert.strictEqual(afterSecondFormat, expected);
+  });
+
   test("applies configured extra indent levels in Java formatting", async () => {
     await withExtraIndentLevel(2, async () => {
       const input = [
