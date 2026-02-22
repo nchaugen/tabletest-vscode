@@ -9,7 +9,20 @@
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Testing",
+    "Formatters"
+  ],
+  "keywords": [
+    "tabletest",
+    "junit",
+    "data-driven testing",
+    "parameterized tests",
+    "table",
+    "formatter",
+    "syntax highlighting",
+    "java",
+    "kotlin"
   ],
   "main": "./out/extension.js",
   "contributes": {
