@@ -78,9 +78,20 @@ export function formatTableString(tableText: string, baseIndent: string = ""): s
     return trimTrailingWhitespace(formatted);
   });
 
+  const hasTrailingBlankLine = lines.length > 0 && lines[lines.length - 1]?.trim() === "";
+
   // Reapply base indentation only to non-blank lines so repeated formatting
   // does not accumulate whitespace on blank separator lines.
-  return outLines.map((line) => (line.trim() === "" ? "" : baseIndent + line)).join("\n");
+  // Keep trailing indentation before a closing triple quote aligned with the table.
+  return outLines
+    .map((line, index) => {
+      if (line.trim() === "") {
+        const isTrailingAlignmentLine = hasTrailingBlankLine && index === outLines.length - 1 && baseIndent !== "";
+        return isTrailingAlignmentLine ? baseIndent : "";
+      }
+      return baseIndent + line;
+    })
+    .join("\n");
 }
 
 type QuoteChar = "'" | "\"";

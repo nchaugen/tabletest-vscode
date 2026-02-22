@@ -265,7 +265,7 @@ test("does not accumulate indentation on blank lines when base indent is used", 
   const once = formatTableString(input, "    ");
   const twice = formatTableString(once, "    ");
 
-  assert.strictEqual(once, "\n    a | b\n    // note\n    1 | 22\n");
+  assert.strictEqual(once, "\n    a | b\n    // note\n    1 | 22\n    ");
   assert.strictEqual(twice, once);
 });
 
@@ -273,12 +273,19 @@ test("does not double-indent comments when correcting under-indented rows", () =
   const input = "\n    // note\na|b\n1|22\n";
   const once = formatTableString(input, "    ");
 
-  assert.strictEqual(once, "\n    // note\n    a | b\n    1 | 22\n");
+  assert.strictEqual(once, "\n    // note\n    a | b\n    1 | 22\n    ");
 });
 
 test("normalises comment indentation to base indent when formatting host strings", () => {
   const input = "\n  // note\na|b\n1|22\n";
   const once = formatTableString(input, "    ");
 
-  assert.strictEqual(once, "\n    // note\n    a | b\n    1 | 22\n");
+  assert.strictEqual(once, "\n    // note\n    a | b\n    1 | 22\n    ");
+});
+
+test("aligns trailing closing-quote indentation with base indent", () => {
+  const input = "\na|b\n1|22\n";
+  const once = formatTableString(input, "    ");
+
+  assert.strictEqual(once, "\n    a | b\n    1 | 22\n    ");
 });

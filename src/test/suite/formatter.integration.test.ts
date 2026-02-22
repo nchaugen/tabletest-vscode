@@ -72,7 +72,7 @@ suite("TableTest formatter integration", () => {
       "@TableTest(\"\"\"",
       "    a | b",
       "    1 | 22",
-      "\"\"\")"
+      "    \"\"\")"
     ].join("\n");
 
     const actual = await formatDocument("java", input);
@@ -122,7 +122,7 @@ suite("TableTest formatter integration", () => {
       "@TableTest(\"\"\"",
       "    a     | b",
       "    \"x|y\" | z",
-      "\"\"\")"
+      "    \"\"\")"
     ].join("\n");
 
     const actual = await formatDocument("java", input);
@@ -143,7 +143,7 @@ suite("TableTest formatter integration", () => {
       "    // comment",
       "    a | b",
       "    1 | 22",
-      "\"\"\")"
+      "    \"\"\")"
     ].join("\n");
 
     const document = await openDocument("java", input);
