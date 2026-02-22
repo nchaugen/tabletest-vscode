@@ -66,28 +66,44 @@ jobs:
   publish-marketplace:
     runs-on: ubuntu-latest
     needs: package
-    if: ${{ secrets.VSCE_PAT != '' }}
 
     steps:
+      - name: Check Marketplace token
+      id: check_token
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      run: |
+        if [ -n "$VSCE_PAT" ]; then
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          echo "VSCE_PAT is not set. Skipping Marketplace publish."
+        fi
+
       - name: Checkout
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
       - name: Install dependencies
+        if: steps.check_token.outputs.publish == 'true'
         run: npm ci
 
       - name: Download VSIX artifact
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/download-artifact@v4
         with:
           name: vsix
           path: release-assets
 
       - name: Publish to Visual Studio Marketplace
+        if: steps.check_token.outputs.publish == 'true'
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: npx @vscode/vsce publish --packagePath release-assets/*.vsix -p "$VSCE_PAT"
@@ -95,28 +111,44 @@ jobs:
   publish-open-vsx:
     runs-on: ubuntu-latest
     needs: package
-    if: ${{ secrets.OVSX_PAT != '' }}
 
     steps:
+      - name: Check Open VSX token
+      id: check_token
+      env:
+        OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      run: |
+        if [ -n "$OVSX_PAT" ]; then
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          echo "OVSX_PAT is not set. Skipping Open VSX publish."
+        fi
+
       - name: Checkout
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
       - name: Install dependencies
+        if: steps.check_token.outputs.publish == 'true'
         run: npm ci
 
       - name: Download VSIX artifact
+        if: steps.check_token.outputs.publish == 'true'
         uses: actions/download-artifact@v4
         with:
           name: vsix
           path: release-assets
 
       - name: Publish to Open VSX
+        if: steps.check_token.outputs.publish == 'true'
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: npx ovsx publish release-assets/*.vsix -p "$OVSX_PAT"
