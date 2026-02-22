@@ -117,7 +117,7 @@ Typical annotation forms:
 
 ## Configuration
 
-- `tabletest.format.extraIndentLevel` (default `1`)
+- `tabletest.format.extraIndentLevel` (user-configurable; by default Java behaves as `1`, Kotlin as `0`)
   - Adds extra indentation levels to formatted rows inside Java/Kotlin `@TableTest` triple-quoted strings.
   - Indent width follows VS Code formatting options (`tabSize` / `insertSpaces`) and respects EditorConfig-applied indentation.
 

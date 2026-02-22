@@ -63,7 +63,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
 
   private resolveExtraIndent(document: vscode.TextDocument, options: vscode.FormattingOptions): string {
     const config = vscode.workspace.getConfiguration("tabletest", document.uri);
-    const configuredLevels = config.get<number>("format.extraIndentLevel", 1);
+    const configuredLevels = this.resolveConfiguredExtraIndentLevels(config, document.languageId);
     const levels = Number.isFinite(configuredLevels) ? Math.max(0, Math.floor(configuredLevels)) : 0;
     if (levels === 0) {
       return "";
@@ -72,5 +72,44 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     const tabSize = Number.isFinite(options.tabSize) ? Math.max(1, Math.floor(options.tabSize)) : 4;
     const unit = options.insertSpaces ? " ".repeat(tabSize) : "\t";
     return unit.repeat(levels);
+  }
+
+  private resolveConfiguredExtraIndentLevels(
+    config: vscode.WorkspaceConfiguration,
+    languageId: string
+  ): number {
+    const inspect = config.inspect<number>("format.extraIndentLevel");
+    if (this.hasExplicitExtraIndentConfiguration(inspect)) {
+      return config.get<number>("format.extraIndentLevel", 1);
+    }
+    return this.defaultExtraIndentLevelsFor(languageId);
+  }
+
+  private hasExplicitExtraIndentConfiguration(
+    inspect: unknown
+  ): boolean {
+    if (!inspect || typeof inspect !== "object") {
+      return false;
+    }
+
+    const values = inspect as Record<string, unknown>;
+
+    const configuredValues = [
+      values.globalValue,
+      values.workspaceValue,
+      values.workspaceFolderValue,
+      values.globalLanguageValue,
+      values.workspaceLanguageValue,
+      values.workspaceFolderLanguageValue
+    ];
+
+    return configuredValues.some((value) => value !== undefined);
+  }
+
+  private defaultExtraIndentLevelsFor(languageId: string): number {
+    if (languageId === "kotlin") {
+      return 0;
+    }
+    return 1;
   }
 }

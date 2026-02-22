@@ -100,8 +100,8 @@ suite("TableTest formatter integration", () => {
     const expected = [
       "@TableTest(",
       "\"\"\"",
-      "    foo | bar",
-      "    1   | 22",
+      "foo | bar",
+      "1   | 22",
       "\"\"\"",
       ")"
     ].join("\n");
