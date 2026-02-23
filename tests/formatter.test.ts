@@ -230,6 +230,39 @@ const cases: FormatCase[] = [
     `)
   },
   {
+    name: "trailing comma in list keeps table unchanged",
+    input: table(`
+      a|b
+      [a, b,]|ok
+    `),
+    expected: table(`
+      a|b
+      [a, b,]|ok
+    `)
+  },
+  {
+    name: "map key without value keeps table unchanged",
+    input: table(`
+      a|b
+      [key:]|ok
+    `),
+    expected: table(`
+      a|b
+      [key:]|ok
+    `)
+  },
+  {
+    name: "map value with extra colons keeps table unchanged",
+    input: table(`
+      a|b
+      [a: b:c:d]|ok
+    `),
+    expected: table(`
+      a|b
+      [a: b:c:d]|ok
+    `)
+  },
+  {
     name: "comments and blank lines",
     input: table(`
       a|b

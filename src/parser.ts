@@ -222,17 +222,24 @@ function formatCollection(value: string): string | null {
 
 function formatBracketedCollection(value: string, open: "[" | "{", close: "]" | "}"): string | null {
   const inner = value.slice(1, -1);
-  if (open === "[" && inner.trim() === ":") {
+  const trimmedInner = inner.trim();
+  if (open === "[" && trimmedInner === ":") {
     return "[:]";
+  }
+  if (trimmedInner === "") {
+    return `${open}${close}`;
   }
   const parts = splitTopLevel(inner, ",");
   if (!parts) return null;
   const items = parts.map((part) => part.trim());
 
   const mapSplits = items.map((item) => splitTopLevel(item, ":"));
+  const hasMalformedColonItem = mapSplits.some((split) => split !== null && split.length > 2);
   const hasMapEntry = mapSplits.some((split) => split !== null && split.length === 2);
 
   if (!hasMapEntry) {
+    if (hasMalformedColonItem) return null;
+    if (items.some((item) => item === "")) return null;
     const formattedItems = items.map((item) => formatValueRecursively(item));
     return `${open}${formattedItems.join(", ")}${close}`;
   }
@@ -244,9 +251,9 @@ function formatBracketedCollection(value: string, open: "[" | "{", close: "]" | 
   const formattedEntries = mapSplits.map((split) => {
     const key = split?.[0]?.trim() ?? "";
     const valuePart = split?.[1]?.trim() ?? "";
-    if (key === "" || isQuotedString(key)) return null;
-    const formattedValue = valuePart === "" ? "" : formatValueRecursively(valuePart);
-    if (formattedValue === "") return `${key}:`;
+    if (key === "" || isQuotedString(key) || valuePart === "") return null;
+    const formattedValue = formatValueRecursively(valuePart);
+    if (formattedValue === "") return null;
     return `${key}: ${formattedValue}`;
   });
 

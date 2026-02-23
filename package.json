@@ -5,6 +5,10 @@
   "icon": "tabletest_128x128.png",
   "version": "0.0.4",
   "publisher": "tabletest",
+  "activationEvents": [
+    "onLanguage:java",
+    "onLanguage:kotlin"
+  ],
   "engines": {
     "vscode": "^1.85.0"
   },
