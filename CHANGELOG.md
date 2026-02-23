@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - No changes yet.
 
+## [0.0.5] - 2026-02-23
+
+### Added
+
+- Theme-aware comment highlighting for `//` table comments in `.table`, Java, and Kotlin table contexts.
+- Dedicated map key highlighting scope for map literals (`support.type.property-name.tabletest`).
+- Recursive syntax highlighting for nested list/set/map values.
+- Warnings for additional malformed collection patterns:
+  - trailing-comma empty elements (for example `[a, b,]`)
+  - map entries without values (for example `[key:]`)
+  - map values with extra top-level colons (for example `[a: b:c:d]`)
+
+### Changed
+
+- Extension activation now includes `onLanguage:java` and `onLanguage:kotlin`, so diagnostics appear without running formatting first.
+- Extension metadata keywords were expanded for discovery in Marketplace search.
+- Release packaging now includes repository metadata and an explicit `.vscodeignore` to avoid shipping development-only files.
+
+### Fixed
+
+- Nested collection values that were previously tokenized as plain unquoted text now receive correct collection scopes.
+
 ## [0.0.4] - 2026-02-22
 
 ### Added
@@ -62,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table formatting command (`TableTest: Format All Tables in Document`).
 - Core cell normalisation and column alignment for TableTest table syntax.
 
-[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.4...HEAD
+[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.5...HEAD
+[0.0.5]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/nchaugen/tabletest-vscode/releases/tag/v0.0.3

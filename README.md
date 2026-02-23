@@ -15,11 +15,18 @@ This style keeps test data clear, maintainable, and easy to extend.
 
 ## Features
 
-- Syntax highlighting for TableTest tables
+- Rich syntax highlighting for TableTest tables:
+  - Header cells
+  - `//` table comments
+  - Map keys
+  - Nested list/set/map structures
 - Table auto-formatting with aligned `|` columns
 - Cell value normalisation for lists/sets/maps
 - Support for Java, Kotlin, and standalone `.table` files
-- Warnings for malformed collection cells in tables
+- Warnings for malformed collection cells in tables, including:
+  - trailing-comma empty elements (for example `[a, b,]`)
+  - map entries without values (for example `[key:]`)
+  - map values with extra top-level colons (for example `[a: b:c:d]`)
 - Automatic language injection for `@TableTest` in Java and Kotlin
 
 ## Supported contexts
@@ -85,6 +92,7 @@ Cell values can be:
 - Empty
 - Unquoted text
 - Single-quoted or double-quoted strings
+- Line comments: `// comment`
 - Lists: `[a, b, c]`
 - Sets: `{a, b, c}`
 - Maps: `[k: v, x: y]`
@@ -127,7 +135,7 @@ Typical annotation forms:
 - `value` is extracted only from a direct triple-quoted literal:
   - explicit `value = """..."""`, or
   - single implicit positional argument with no named arguments.
-- Diagnostics currently focus on malformed collection cells (lists/sets/maps).
+- Diagnostics currently focus on malformed collection cells (lists/sets/maps), including invalid trailing commas and invalid map entries.
 
 ## Contributing
 
