@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- No changes yet.
+
+## [0.0.6] - 2026-03-08
+
+### Added
+
 - Java `@TableTest` support for static string-array table literals (implicit and named `value = { ... }` forms).
 - Parser extraction for Java string-array rows with source-offset metadata and decoded-content mappings for escapes.
 - Formatter support for Java string-array tables with canonical rendering:
@@ -107,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table formatting command (`TableTest: Format All Tables in Document`).
 - Core cell normalisation and column alignment for TableTest table syntax.
 
-[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.5...HEAD
+[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.6...HEAD
+[0.0.6]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.5...v0.0.6
 [0.0.5]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/nchaugen/tabletest-vscode/releases/tag/v0.0.3
