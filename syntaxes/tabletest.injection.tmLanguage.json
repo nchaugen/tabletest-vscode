@@ -3,12 +3,13 @@
   "injectionSelector": "L:source.java",
   "patterns": [
     { "include": "#tabletestImplicitAfterAnnotation" },
+    { "include": "#tabletestImplicitArrayAfterAnnotation" },
     { "include": "#tabletestAnnotationString" }
   ],
   "repository": {
     "tabletestImplicitAfterAnnotation": {
       "name": "meta.tabletest.block",
-      "begin": "(@TableTest)\\s*\\(\\s*(?<!\\\\)(\"\"\")",
+      "begin": "(@(?:[\\w$]+\\.)*TableTest)\\s*\\(\\s*(?<!\\\\)(\"\"\")",
       "beginCaptures": {
         "1": {
           "name": "storage.type.annotation.tabletest"
@@ -27,8 +28,29 @@
         { "include": "#table" }
       ]
     },
+    "tabletestImplicitArrayAfterAnnotation": {
+      "name": "meta.tabletest.array",
+      "begin": "(@(?:[\\w$]+\\.)*TableTest)\\s*\\(\\s*(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.annotation.tabletest"
+        },
+        "2": {
+          "name": "punctuation.section.braces.begin.tabletest"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.braces.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tabletestArrayRows" }
+      ]
+    },
     "tabletestAnnotationString": {
-      "begin": "(@TableTest)\\s*\\(",
+      "begin": "(@(?:[\\w$]+\\.)*TableTest)\\s*\\(",
       "beginCaptures": {
         "1": {
           "name": "storage.type.annotation.tabletest"
@@ -37,6 +59,7 @@
       "end": "\\)",
       "patterns": [
         { "include": "#tabletestValueArgument" },
+        { "include": "#tabletestImplicitValueArray" },
         { "include": "#tabletestImplicitValueString" }
       ]
     },
@@ -63,7 +86,126 @@
       "begin": "\\bvalue\\s*=",
       "end": "(?=,|\\))",
       "patterns": [
+        { "include": "#tabletestArrayLiteral" },
         { "include": "#tabletestBlock" }
+      ]
+    },
+    "tabletestImplicitValueArray": {
+      "name": "meta.tabletest.array",
+      "begin": "^[ \\t]*(?!\\w+\\s*=)(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.braces.begin.tabletest"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.braces.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tabletestArrayRows" }
+      ]
+    },
+    "tabletestArrayLiteral": {
+      "name": "meta.tabletest.array",
+      "begin": "(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.braces.begin.tabletest"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.braces.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tabletestArrayRows" }
+      ]
+    },
+    "tabletestArrayRows": {
+      "patterns": [
+        { "include": "#tabletestArrayHeaderString" },
+        { "include": "#tabletestArrayRemainingRows" }
+      ]
+    },
+    "tabletestArrayHeaderString": {
+      "name": "markup.heading.tabletest meta.tabletest.header",
+      "begin": "\\s*(\\\")",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\\\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tableHeaderInArray" }
+      ]
+    },
+    "tabletestArrayRowString": {
+      "name": "meta.tabletest.row",
+      "begin": "\\s*(\\\")",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\\\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tableRowInArray" }
+      ]
+    },
+    "tabletestArrayRemainingRows": {
+      "name": "meta.tabletest.array.rows",
+      "begin": "\\s*,",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.separator.comma.tabletest"
+        }
+      },
+      "end": "(?=\\})",
+      "patterns": [
+        { "include": "#tabletestArrayRowString" },
+        { "name": "punctuation.separator.comma.tabletest", "match": "," }
+      ]
+    },
+    "tableHeaderInArray": {
+      "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
+        { "include": "#stringDouble" },
+        { "include": "#stringSingle" },
+        { "match": "\\s+" },
+        { "include": "#mapLiteral" },
+        { "include": "#listLiteral" },
+        { "include": "#setLiteral" },
+        { "name": "keyword.operator.tabletest.pipe", "match": "\\|" },
+        { "name": "entity.name.column.tabletest", "match": "(?:(?!(?<!\\\\)\\\")[^|\\r\\n])+" }
+      ]
+    },
+    "tableRowInArray": {
+      "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
+        { "include": "#stringDouble" },
+        { "include": "#stringSingle" },
+        { "match": "\\s+" },
+        { "include": "#mapLiteral" },
+        { "include": "#listLiteral" },
+        { "include": "#setLiteral" },
+        { "name": "keyword.operator.tabletest.pipe", "match": "\\|" },
+        { "name": "string.unquoted.tabletest", "match": "(?:(?!(?<!\\\\)\\\")[^|\\r\\n])+" }
       ]
     },
     "tabletestBlock": {

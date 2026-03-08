@@ -9,7 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- No changes yet.
+- Java `@TableTest` support for static string-array table literals (implicit and named `value = { ... }` forms).
+- Parser extraction for Java string-array rows with source-offset metadata and decoded-content mappings for escapes.
+- Formatter support for Java string-array tables with canonical rendering:
+  - one string row per line
+  - aligned pipes and normalised collection syntax
+  - trailing-space padding so closing quotes align
+  - implicit-form adjacency enforcement as `@TableTest({` ... `})`
+- Grammar coverage for Java string-array tables, including header/data row scopes and collection/map-key scopes inside array rows.
+- Additional Java grammar coverage for fully-qualified annotation names (for example `@org.tabletest.junit.TableTest(...)`).
+- Regression tests for escaped quote handling in Java string-array rows.
+
+### Changed
+
+- Unified annotation table extraction API to support both text-block and string-array table forms.
+- Java default indentation behaviour now follows Java formatter continuation indentation when `tabletest.format.extraIndentLevel` is not explicitly configured.
+- Java formatter-profile resolution now supports broader path formats and variable expansion (`file:...`, `${workspaceFolder...}`, `${env:...}`, `~/...`), with robust XML attribute parsing.
+- Documentation and configuration descriptions were updated to reflect Java formatter-driven default indentation for both text blocks and string arrays.
+
+### Fixed
+
+- Java string-array table highlighting regression where rows/collections could fall back to plain string scopes.
+- Array-row collection highlighting with whitespace around pipes (for example `| {x, y} | [k: v]`).
+- False malformed-collection diagnostics for escaped quotes in Java string-array rows (for example `\"`).
+- Formatter ping-pong between Java formatter and TableTest formatter for Java annotation text blocks and string-array tables.
 
 ## [0.0.5] - 2026-02-23
 

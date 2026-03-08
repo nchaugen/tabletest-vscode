@@ -49,7 +49,7 @@
           "type": "integer",
           "default": 1,
           "minimum": 0,
-          "description": "Additional indent levels to add inside formatted Java/Kotlin TableTest triple-quoted strings. If not explicitly configured, Java defaults to one extra level while Kotlin aligns with the opening triple quote. Indent width follows editor formatting options (including EditorConfig-applied indentation)."
+          "description": "Additional indent levels to add inside formatted Java/Kotlin TableTest triple-quoted strings and Java string-array tables. If not explicitly configured, Java follows formatter continuation indentation (defaulting to 2 levels when profile values are unavailable), while Kotlin aligns with the opening triple quote. Indent width follows editor formatting options (including EditorConfig-applied indentation)."
         }
       }
     },

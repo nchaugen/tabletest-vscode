@@ -152,3 +152,80 @@ test("supports Kotlin-specific triple-quote termination when extracting tables",
   assert.strictEqual(javaEdits.length, 0);
   assert.strictEqual(kotlinEdits.length, 1);
 });
+
+test("formats implicit Java string-array table into canonical multiline form", () => {
+  const text = "@TableTest({\"name|age\",\"Alice|30\",\"Bob|7\"})";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@TableTest({",
+    "  \"name  | age\",",
+    "  \"Alice | 30 \",",
+    "  \"Bob   | 7  \"",
+    "})"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});
+
+test("formats named Java string-array value while preserving the named argument form", () => {
+  const text = "@TableTest(value = {\"a|b\",\"1|22\"}, name = \"x\")";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@TableTest(value = {",
+    "  \"a | b \",",
+    "  \"1 | 22\"",
+    "}, name = \"x\")"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});
+
+test("uses dedicated string-array indent when provided", () => {
+  const text = "@TableTest({\"a|b\",\"1|22\"})";
+
+  const edits = calculateTableEdits(
+    text,
+    (content, indent) => formatTableString(content, indent),
+    undefined,
+    "java",
+    "  ",
+    4,
+    "    "
+  );
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@TableTest({",
+    "    \"a | b \",",
+    "    \"1 | 22\"",
+    "})"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});
+
+test("formats Java string-array rows that contain escaped double quotes in collection values", () => {
+  const text = "@TableTest({\"a|b\",\"[k:\\\"v\\\"]|ok\"})";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@TableTest({",
+    "  \"a        | b \",",
+    "  \"[k: \\\"v\\\"] | ok\"",
+    "})"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});

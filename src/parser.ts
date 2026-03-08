@@ -557,12 +557,38 @@ function isFullWidthCodePoint(codePoint: number): boolean {
 const extendedPictographic = /\p{Extended_Pictographic}/u;
 const emojiPresentation = /\p{Emoji_Presentation}/u;
 
-type ExtractedTable = {
+type ExtractedTripleQuotedTable = {
   start: number;
   end: number;
   content: string;
   indent: string;
 };
+
+export type ExtractedTableTextBlock = {
+  kind: "textBlock";
+  start: number;
+  end: number;
+  content: string;
+  indent: string;
+};
+
+export type ExtractedTableStringArrayRow = {
+  content: string;
+  start: number;
+  end: number;
+  decodedContent: string;
+  decodedContentSourceOffsets: number[];
+};
+
+export type ExtractedTableStringArray = {
+  kind: "stringArray";
+  start: number;
+  end: number;
+  indent: string;
+  rows: ExtractedTableStringArrayRow[];
+};
+
+export type ExtractedAnnotationTable = ExtractedTableTextBlock | ExtractedTableStringArray;
 
 type Range = {
   start: number;
@@ -573,11 +599,11 @@ const tripleQuote = "\"\"\"";
 const tableTestMarker = "@TableTest";
 export type AnnotationHostLanguage = "java" | "kotlin";
 
-export function extractTripleQuotedTables(
+export function extractAnnotationTables(
   text: string,
   language: AnnotationHostLanguage = "java"
-): ExtractedTable[] {
-  const results: ExtractedTable[] = [];
+): ExtractedAnnotationTable[] {
+  const results: ExtractedAnnotationTable[] = [];
   let searchIndex = 0;
 
   while (searchIndex < text.length) {
@@ -617,14 +643,26 @@ export function extractTripleQuotedTables(
   return results;
 }
 
+export function extractTripleQuotedTables(
+  text: string,
+  language: AnnotationHostLanguage = "java"
+): ExtractedTripleQuotedTable[] {
+  return extractAnnotationTables(text, language).flatMap((table) => {
+    if (table.kind !== "textBlock") {
+      return [];
+    }
+    return [{ start: table.start, end: table.end, content: table.content, indent: table.indent }];
+  });
+}
+
 function extractTableFromArguments(
   text: string,
   start: number,
   end: number,
   language: AnnotationHostLanguage
-): ExtractedTable | null {
+): ExtractedAnnotationTable | null {
   const argumentsRanges = splitTopLevelArguments(text, start, end, language);
-  let implicitValue: ExtractedTable | null = null;
+  let implicitValue: ExtractedAnnotationTable | null = null;
   let namedArgumentSeen = false;
   let positionalArgumentCount = 0;
 
@@ -640,7 +678,7 @@ function extractTableFromArguments(
       const leftHandSide = text.slice(expressionStart, equalsIndex).trim();
       if (leftHandSide === "value") {
         const valueStart = skipWhitespaceAndComments(text, equalsIndex + 1, range.end);
-        const namedValue = parseTripleQuotedValue(text, valueStart, range.end, language);
+        const namedValue = parseDirectTableValue(text, valueStart, range.end, language);
         if (namedValue) {
           return namedValue;
         }
@@ -650,7 +688,12 @@ function extractTableFromArguments(
 
     positionalArgumentCount += 1;
     if (!implicitValue) {
-      implicitValue = parseTripleQuotedValue(text, expressionStart, range.end, language);
+      const positionalValue = parseDirectTableValue(text, expressionStart, range.end, language);
+      if (positionalValue && positionalValue.kind === "stringArray") {
+        implicitValue = { ...positionalValue, start: range.start, end: range.end };
+      } else {
+        implicitValue = positionalValue;
+      }
     }
   }
 
@@ -663,12 +706,25 @@ function extractTableFromArguments(
   return implicitValue;
 }
 
+function parseDirectTableValue(
+  text: string,
+  valueStart: number,
+  limit: number,
+  language: AnnotationHostLanguage
+): ExtractedAnnotationTable | null {
+  const textBlock = parseTripleQuotedValue(text, valueStart, limit, language);
+  if (textBlock) {
+    return textBlock;
+  }
+  return parseStaticStringArrayValue(text, valueStart, limit, language);
+}
+
 function parseTripleQuotedValue(
   text: string,
   quoteStart: number,
   limit: number,
   language: AnnotationHostLanguage
-): ExtractedTable | null {
+): ExtractedTableTextBlock | null {
   if (!text.startsWith(tripleQuote, quoteStart)) return null;
   const quoteEnd = findClosingTripleQuote(text, quoteStart, limit, language);
   if (quoteEnd < 0 || quoteEnd > limit) return null;
@@ -679,7 +735,264 @@ function parseTripleQuotedValue(
   const content = text.slice(contentStart, quoteEnd);
   const lineStart = text.lastIndexOf("\n", quoteStart) + 1;
   const indent = text.slice(lineStart, quoteStart).match(/^\s*/)?.[0] ?? "";
-  return { start: contentStart, end: quoteEnd, content, indent };
+  return { kind: "textBlock", start: contentStart, end: quoteEnd, content, indent };
+}
+
+function parseStaticStringArrayValue(
+  text: string,
+  arrayStart: number,
+  limit: number,
+  language: AnnotationHostLanguage
+): ExtractedTableStringArray | null {
+  if (language !== "java") {
+    return null;
+  }
+  if ((text[arrayStart] ?? "") !== "{") {
+    return null;
+  }
+
+  const closeBraceIndex = findMatchingBrace(text, arrayStart, limit, language);
+  if (closeBraceIndex < 0 || closeBraceIndex >= limit) {
+    return null;
+  }
+  if (skipWhitespaceAndComments(text, closeBraceIndex + 1, limit) !== limit) {
+    return null;
+  }
+
+  const rows: ExtractedTableStringArrayRow[] = [];
+  let index = arrayStart + 1;
+  while (index < closeBraceIndex) {
+    index = skipWhitespaceAndComments(text, index, closeBraceIndex);
+    if (index >= closeBraceIndex) {
+      break;
+    }
+
+    if ((text[index] ?? "") !== "\"") {
+      return null;
+    }
+
+    const literalEnd = skipQuotedString(text, index, "\"", closeBraceIndex + 1);
+    if (literalEnd > closeBraceIndex + 1) {
+      return null;
+    }
+    const closingQuoteIndex = literalEnd - 1;
+    if (closingQuoteIndex <= index || (text[closingQuoteIndex] ?? "") !== "\"") {
+      return null;
+    }
+
+    rows.push({
+      content: text.slice(index + 1, closingQuoteIndex),
+      start: index + 1,
+      end: closingQuoteIndex,
+      ...decodeJavaStringLiteralContent(text.slice(index + 1, closingQuoteIndex), index + 1)
+    });
+
+    index = skipWhitespaceAndComments(text, literalEnd, closeBraceIndex);
+    if (index >= closeBraceIndex) {
+      break;
+    }
+    if ((text[index] ?? "") !== ",") {
+      return null;
+    }
+    index += 1;
+  }
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return {
+    kind: "stringArray",
+    start: arrayStart,
+    end: closeBraceIndex + 1,
+    indent: lineLeadingIndentAt(text, arrayStart),
+    rows
+  };
+}
+
+function decodeJavaStringLiteralContent(
+  rawContent: string,
+  sourceStartOffset: number
+): {
+  decodedContent: string;
+  decodedContentSourceOffsets: number[];
+} {
+  let decodedContent = "";
+  const decodedContentSourceOffsets: number[] = [sourceStartOffset];
+  let index = 0;
+
+  while (index < rawContent.length) {
+    const char = rawContent[index] ?? "";
+    if (char !== "\\") {
+      decodedContent += char;
+      index += 1;
+      decodedContentSourceOffsets.push(sourceStartOffset + index);
+      continue;
+    }
+
+    const escaped = decodeEscapedJavaCharacter(rawContent, index);
+    if (!escaped) {
+      decodedContent += "\\";
+      index += 1;
+      decodedContentSourceOffsets.push(sourceStartOffset + index);
+      continue;
+    }
+
+    decodedContent += escaped.value;
+    index = escaped.nextIndex;
+    decodedContentSourceOffsets.push(sourceStartOffset + index);
+  }
+
+  return { decodedContent, decodedContentSourceOffsets };
+}
+
+type DecodedJavaEscape = {
+  value: string;
+  nextIndex: number;
+};
+
+function decodeEscapedJavaCharacter(rawContent: string, backslashIndex: number): DecodedJavaEscape | null {
+  const nextChar = rawContent[backslashIndex + 1] ?? "";
+  if (nextChar === "") {
+    return null;
+  }
+
+  switch (nextChar) {
+    case "b":
+      return { value: "\b", nextIndex: backslashIndex + 2 };
+    case "f":
+      return { value: "\f", nextIndex: backslashIndex + 2 };
+    case "n":
+      return { value: "\n", nextIndex: backslashIndex + 2 };
+    case "r":
+      return { value: "\r", nextIndex: backslashIndex + 2 };
+    case "t":
+      return { value: "\t", nextIndex: backslashIndex + 2 };
+    case "\"":
+      return { value: "\"", nextIndex: backslashIndex + 2 };
+    case "'":
+      return { value: "'", nextIndex: backslashIndex + 2 };
+    case "\\":
+      return { value: "\\", nextIndex: backslashIndex + 2 };
+    default:
+      break;
+  }
+
+  if (nextChar === "u") {
+    const decodedUnicode = decodeUnicodeJavaEscape(rawContent, backslashIndex);
+    if (decodedUnicode) {
+      return decodedUnicode;
+    }
+  }
+
+  if (isOctalDigit(nextChar)) {
+    const decodedOctal = decodeOctalJavaEscape(rawContent, backslashIndex);
+    if (decodedOctal) {
+      return decodedOctal;
+    }
+  }
+
+  return null;
+}
+
+function decodeUnicodeJavaEscape(rawContent: string, backslashIndex: number): DecodedJavaEscape | null {
+  let cursor = backslashIndex + 1;
+  while ((rawContent[cursor] ?? "") === "u") {
+    cursor += 1;
+  }
+
+  const hexDigits = rawContent.slice(cursor, cursor + 4);
+  if (!/^[0-9a-fA-F]{4}$/.test(hexDigits)) {
+    return null;
+  }
+
+  const codeUnit = Number.parseInt(hexDigits, 16);
+  return {
+    value: String.fromCharCode(codeUnit),
+    nextIndex: cursor + 4
+  };
+}
+
+function decodeOctalJavaEscape(rawContent: string, backslashIndex: number): DecodedJavaEscape | null {
+  const firstDigit = rawContent[backslashIndex + 1] ?? "";
+  if (!isOctalDigit(firstDigit)) {
+    return null;
+  }
+
+  let cursor = backslashIndex + 2;
+  const maxDigits = firstDigit <= "3" ? 3 : 2;
+  while (cursor < rawContent.length) {
+    const currentChar = rawContent[cursor] ?? "";
+    const digitsConsumed = cursor - (backslashIndex + 1);
+    if (digitsConsumed >= maxDigits || !isOctalDigit(currentChar)) {
+      break;
+    }
+    cursor += 1;
+  }
+
+  const octalDigits = rawContent.slice(backslashIndex + 1, cursor);
+  const codeUnit = Number.parseInt(octalDigits, 8);
+  if (!Number.isFinite(codeUnit)) {
+    return null;
+  }
+
+  return {
+    value: String.fromCharCode(codeUnit),
+    nextIndex: cursor
+  };
+}
+
+function isOctalDigit(char: string): boolean {
+  return char >= "0" && char <= "7";
+}
+
+function lineLeadingIndentAt(text: string, offset: number): string {
+  const lineStart = text.lastIndexOf("\n", offset) + 1;
+  return text.slice(lineStart, offset).match(/^\s*/)?.[0] ?? "";
+}
+
+function findMatchingBrace(
+  text: string,
+  openBraceIndex: number,
+  limit: number,
+  language: AnnotationHostLanguage
+): number {
+  let depth = 1;
+  let index = openBraceIndex + 1;
+
+  while (index < limit) {
+    if (text.startsWith(tripleQuote, index)) {
+      index = skipTripleQuotedString(text, index, limit, language);
+      continue;
+    }
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, limit);
+      continue;
+    }
+
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char as QuoteChar, limit);
+      continue;
+    }
+    if (char === "{") {
+      depth += 1;
+      index += 1;
+      continue;
+    }
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return index;
+      }
+      index += 1;
+      continue;
+    }
+
+    index += 1;
+  }
+
+  return -1;
 }
 
 function splitTopLevelArguments(text: string, start: number, end: number, language: AnnotationHostLanguage): Range[] {

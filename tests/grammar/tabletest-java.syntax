@@ -85,3 +85,64 @@ class MultipleArgsWithNamedValue {
   )
   void testMultipleArgsWithNamedValue() {}
 }
+
+class StringArrayImplicitValue {
+  @TableTest({
+    "name|age",
+//   ^ markup.heading.tabletest
+//   ^ meta.tabletest.header
+//       ^ keyword.operator.tabletest.pipe
+    "Alice|30"
+//   ^ meta.tabletest.row
+//   ^ - markup.heading.tabletest
+//        ^ keyword.operator.tabletest.pipe
+  })
+  void testStringArrayImplicitValue() {}
+}
+
+class StringArrayNamedValue {
+  @TableTest(value = {
+    "left|right",
+//   ^ markup.heading.tabletest
+//   ^ meta.tabletest.header
+//       ^ keyword.operator.tabletest.pipe
+    "[x: [1,2]]|ok"
+//   ^ meta.tabletest.row
+//   ^ - markup.heading.tabletest
+//   ^ meta.tabletest.map
+//       ^ meta.tabletest.list
+//             ^ keyword.operator.tabletest.pipe
+    "[1, 2]|{x, y}|[k: v]"
+//   ^ meta.tabletest.row
+//   ^ meta.tabletest.list
+//          ^ meta.tabletest.set
+//                 ^ meta.tabletest.map
+    "[1, 2] | {x, y} | [k: v]"
+//   ^ meta.tabletest.row
+//   ^ meta.tabletest.list
+//            ^ meta.tabletest.set
+//                      ^ meta.tabletest.map
+  }, name = "x")
+  void testStringArrayNamedValue() {}
+}
+
+class NonTableArrayAnnotation {
+  @Other({"a|b"})
+//          ^ - keyword.operator.tabletest.pipe
+  void testNonTableArrayAnnotation() {}
+}
+
+class FullyQualifiedTableTestAnnotation {
+  @org.tabletest.junit.TableTest({
+    "col1|col2",
+//   ^ markup.heading.tabletest
+//   ^ meta.tabletest.header
+//       ^ keyword.operator.tabletest.pipe
+    "[1, 2]|{x, y}|[k: v]"
+//   ^ meta.tabletest.row
+//   ^ meta.tabletest.list
+//          ^ meta.tabletest.set
+//                 ^ meta.tabletest.map
+  })
+  void testFullyQualifiedTableTestAnnotation() {}
+}

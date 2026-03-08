@@ -122,19 +122,24 @@ Use Command Palette:
 Typical annotation forms:
 - `@TableTest("""...""")`
 - `@TableTest(value = """...""")`
+- `@TableTest({ "header|value", "row|value" })` (Java)
+- `@TableTest(value = { "header|value", "row|value" })` (Java)
 
 ## Configuration
 
-- `tabletest.format.extraIndentLevel` (user-configurable; by default Java behaves as `1`, Kotlin as `0`)
-  - Adds extra indentation levels to formatted rows inside Java/Kotlin `@TableTest` triple-quoted strings.
+- `tabletest.format.extraIndentLevel` (user-configurable; by default Kotlin behaves as `0`, while Java follows formatter continuation indentation)
+  - Adds extra indentation levels to formatted rows inside Java/Kotlin `@TableTest` triple-quoted strings and Java string-array tables.
+  - For Java, when this setting is not explicitly configured, TableTest reads `java.format.settings.url` profile values (`continuation_indentation_for_array_initializer` / `continuation_indentation`) and falls back to `2` levels if unavailable.
   - Indent width follows VS Code formatting options (`tabSize` / `insertSpaces`) and respects EditorConfig-applied indentation.
 
 ## Limitations
 
 - Annotation extraction in Java/Kotlin uses a lightweight scanner, not a full parser.
-- `value` is extracted only from a direct triple-quoted literal:
-  - explicit `value = """..."""`, or
-  - single implicit positional argument with no named arguments.
+- `value` is extracted only from a direct supported literal:
+  - triple-quoted literal (`"""..."""`), or
+  - Java static string-array literal (`{"...", "..."}`).
+- For implicit Java string-array formatting, the formatter normalises boundaries to `@TableTest({` ... `})`.
+- Implicit extraction is only used when there is exactly one positional argument and no named arguments.
 - Diagnostics currently focus on malformed collection cells (lists/sets/maps), including invalid trailing commas and invalid map entries.
 
 ## Contributing
