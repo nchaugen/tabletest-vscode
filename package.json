@@ -152,7 +152,7 @@
     "@typescript-eslint/parser": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@vscode/vsce": "^3.0.0",
-    "mocha": "^10.4.0",
+    "mocha": "^11.7.5",
     "vscode-tmgrammar-test": "^0.1.3"
   }
 }
