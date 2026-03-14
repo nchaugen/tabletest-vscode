@@ -1,0 +1,55 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "Europe/Oslo"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase-if-necessary"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "npm"
+    groups:
+      linting:
+        patterns:
+          - "eslint"
+          - "@typescript-eslint/*"
+      testing:
+        patterns:
+          - "mocha"
+          - "@types/mocha"
+          - "@vscode/test-electron"
+          - "vscode-tmgrammar-test"
+      build-and-publishing:
+        patterns:
+          - "typescript"
+          - "@types/node"
+          - "@vscode/vsce"
+    # Keep VS Code API typings aligned with engines.vscode through manual bumps.
+    ignore:
+      - dependency-name: "@types/vscode"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+      timezone: "Europe/Oslo"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
