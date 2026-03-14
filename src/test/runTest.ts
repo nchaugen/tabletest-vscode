@@ -11,6 +11,7 @@ import {
 
 const execFileAsync = promisify(execFile);
 const kotlinExtensionId = "fwcd.kotlin";
+const vscodeVersionEnvironmentVariable = "TABLETEST_VSCODE_VERSION";
 
 function isHeadlessHostAbort(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -19,6 +20,40 @@ function isHeadlessHostAbort(error: unknown): boolean {
 
 function shouldRequireKotlin(): boolean {
   return process.env.TABLETEST_REQUIRE_KOTLIN === "1";
+}
+
+function requestedVSCodeVersion(): string | undefined {
+  const configuredVersion = process.env[vscodeVersionEnvironmentVariable]?.trim();
+  return configuredVersion === "" ? undefined : configuredVersion;
+}
+
+async function downloadVSCodeExecutablePath(extensionDevelopmentPath: string): Promise<string> {
+  const version = requestedVSCodeVersion();
+  if (version) {
+    console.log(`Running integration tests against VS Code ${version}.`);
+    return downloadAndUnzipVSCode(version);
+  }
+
+  console.log("Running integration tests against the newest VS Code release compatible with engines.vscode.");
+  return downloadAndUnzipVSCode({ extensionDevelopmentPath });
+}
+
+function cachedKotlinExtensionDirectory(extensionDevelopmentPath: string): string | null {
+  const cachedExtensionsDir = path.join(extensionDevelopmentPath, ".vscode-test", "extensions");
+  if (!fs.existsSync(cachedExtensionsDir)) {
+    return null;
+  }
+
+  const cachedExtensionDirectories = fs.readdirSync(cachedExtensionsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name.startsWith(`${kotlinExtensionId}-`))
+    .map((entry) => entry.name)
+    .sort((left, right) => right.localeCompare(left, undefined, { numeric: true }));
+
+  if (cachedExtensionDirectories.length === 0) {
+    return null;
+  }
+
+  return path.join(cachedExtensionsDir, cachedExtensionDirectories[0]);
 }
 
 function stripDefaultCliPaths(cliArgs: string[]): string[] {
@@ -58,9 +93,18 @@ function seedJavaFormatterSettings(testRuntimeDir: string, userDataDir: string):
 
 async function installKotlinExtensionIfPossible(
   vscodeExecutablePath: string,
+  extensionDevelopmentPath: string,
   userDataDir: string,
   extensionsDir: string
 ): Promise<void> {
+  const cachedExtensionDirectory = cachedKotlinExtensionDirectory(extensionDevelopmentPath);
+  if (cachedExtensionDirectory) {
+    const targetDirectory = path.join(extensionsDir, path.basename(cachedExtensionDirectory));
+    fs.cpSync(cachedExtensionDirectory, targetDirectory, { recursive: true });
+    console.log(`Reused cached Kotlin extension from ${cachedExtensionDirectory}.`);
+    return;
+  }
+
   const [cliPath, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
   const effectiveCliArgs = stripDefaultCliPaths(cliArgs);
 
@@ -97,8 +141,13 @@ async function main(): Promise<void> {
     fs.mkdirSync(extensionsDir, { recursive: true });
     seedJavaFormatterSettings(testRuntimeDir, userDataDir);
 
-    const vscodeExecutablePath = await downloadAndUnzipVSCode();
-    await installKotlinExtensionIfPossible(vscodeExecutablePath, userDataDir, extensionsDir);
+    const vscodeExecutablePath = await downloadVSCodeExecutablePath(extensionDevelopmentPath);
+    await installKotlinExtensionIfPossible(
+      vscodeExecutablePath,
+      extensionDevelopmentPath,
+      userDataDir,
+      extensionsDir
+    );
 
     await runTests({
       extensionDevelopmentPath,

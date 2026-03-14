@@ -29,6 +29,7 @@ Integration tests launch a VS Code host. The runner attempts to install the Kotl
 
 - Kotlin assertions are skipped when Kotlin support is unavailable and `TABLETEST_REQUIRE_KOTLIN` is not set.
 - In headless/sandboxed environments where the VS Code test host cannot start, integration tests are skipped unless `TABLETEST_INTEGRATION_STRICT=1` is set.
+- To reproduce CI compatibility checks locally, set `TABLETEST_VSCODE_VERSION` explicitly, for example `TABLETEST_VSCODE_VERSION=1.85.0 npm run test:integration:strict` or `TABLETEST_VSCODE_VERSION=stable npm run test:integration:strict`.
 
 ## Release workflow
 
