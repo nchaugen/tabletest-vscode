@@ -145,3 +145,8 @@ Typical annotation forms:
 ## Contributing
 
 Developer documentation and release workflow are in `CONTRIBUTING.md`.
+
+Common local test commands:
+- Fast unit suite: `npm test` or `npm run test:unit`
+- Strict VS Code integration suite: `npm run test:integration:strict`
+- Full local suite matching CI gates: `npm run test:full`

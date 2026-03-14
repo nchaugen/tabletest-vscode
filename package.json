@@ -97,9 +97,12 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "package": "vsce package",
-    "test": "npm run test:formatter && npm run test:grammar",
+    "test": "npm run test:unit",
+    "test:unit": "npm run test:formatter && npm run test:grammar",
     "test:formatter": "tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
     "test:integration": "npm run compile && node ./out/test/runTest.js",
+    "test:integration:strict": "node ./scripts/run-integration-strict.cjs",
+    "test:full": "node ./scripts/run-full-tests.cjs",
     "test:grammar": "vscode-tmgrammar-test -g ./syntaxes/tabletest.injection.tmLanguage.json -g ./syntaxes/tabletest.kotlin.injection.tmLanguage.json -g ./syntaxes/tabletest.tmLanguage.json \"tests/grammar/**/*.syntax\"",
     "lint": "eslint src --ext ts"
   },

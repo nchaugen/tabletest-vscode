@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Run test suite
-        run: npm test
+        run: npm run test:unit
 
   integration:
     runs-on: ubuntu-latest
@@ -41,7 +41,4 @@ jobs:
         run: npm ci
 
       - name: Run integration tests
-        run: xvfb-run -a npm run test:integration
-        env:
-          TABLETEST_INTEGRATION_STRICT: "1"
-          TABLETEST_REQUIRE_KOTLIN: "1"
+        run: xvfb-run -a npm run test:integration:strict
