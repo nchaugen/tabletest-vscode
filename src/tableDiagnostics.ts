@@ -105,6 +105,11 @@ function arrayRowOffsets(rows: ExtractedTableStringArrayRow[]): ArrayRowOffset[]
 }
 
 function mapJoinedOffsetToSourceOffset(offset: number, rowOffsets: ArrayRowOffset[]): number | null {
+  const exactRowStart = rowOffsets.find((rowOffset) => offset === rowOffset.joinedStart);
+  if (exactRowStart) {
+    return exactRowStart.row.decodedContentSourceOffsets[0] ?? exactRowStart.row.start;
+  }
+
   for (const rowOffset of rowOffsets) {
     if (offset < rowOffset.joinedStart) {
       continue;

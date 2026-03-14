@@ -18,5 +18,17 @@ Scenario | "b" | 'c'
 // ^ meta.tabletest.map
 //  ^ meta.tabletest.list
 //    ^ punctuation.separator.comma.tabletest
+["key with spaces": value] | ['key:colon': other]
+// ^ meta.tabletest.row
+// ^ meta.tabletest.map
+//  ^ support.type.property-name.tabletest
+//                            ^ meta.tabletest.map
+//                             ^ support.type.property-name.tabletest
+[[1, 2], [3, 4]] | {[a: 4], [b: 5]}
+// ^ meta.tabletest.row
+// ^ meta.tabletest.list
+//                  ^ meta.tabletest.set
+//                   ^ meta.tabletest.map
+//                           ^ meta.tabletest.map
   // table comment
 //   ^ comment.line.double-slash.tabletest

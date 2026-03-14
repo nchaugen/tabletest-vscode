@@ -104,12 +104,13 @@ function formatStringArrayTable(
     return "{}";
   }
 
-  const maxRowWidth = Math.max(...formattedRows.map((row) => displayWidth(row, tabSize)));
+  const escapedRowLiterals = formattedRows.map((row) => escapeJavaStringLiteral(row));
+  const maxRowWidth = Math.max(...escapedRowLiterals.map((row) => displayWidth(row, tabSize)));
   const rowIndent = table.indent + extraIndent;
-  const rowLines = formattedRows.map((row, rowIndex) => {
-    const rowWidth = displayWidth(row, tabSize);
+  const rowLines = escapedRowLiterals.map((escapedRow, rowIndex) => {
+    const rowWidth = displayWidth(escapedRow, tabSize);
     const trailingSpaces = " ".repeat(Math.max(maxRowWidth - rowWidth, 0));
-    const literal = escapeJavaStringLiteral(row + trailingSpaces);
+    const literal = escapedRow + trailingSpaces;
     const suffix = rowIndex < formattedRows.length - 1 ? "," : "";
     return `${rowIndent}"${literal}"${suffix}`;
   });

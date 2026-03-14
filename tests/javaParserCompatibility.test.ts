@@ -6,7 +6,6 @@ type CompatibilityCase = {
   name: string;
   input: string;
   expected: string;
-  expectsTableFallback?: boolean;
 };
 
 function formatCell(value: string): string {
@@ -40,17 +39,21 @@ const cases: CompatibilityCase[] = [
     expected: "[a: [1, 2], b: {x, y}]"
   },
   {
-    name: "quoted map keys should remain unchanged",
-    input: "[\"a\":b]",
-    expected: "[\"a\":b]",
-    expectsTableFallback: true
+    name: "double-quoted map key spacing",
+    input: "[\"a:a\":b]",
+    expected: "[\"a:a\": b]"
+  },
+  {
+    name: "single-quoted map key spacing",
+    input: "['[a]':b]",
+    expected: "['[a]': b]"
   }
 ];
 
-test("java parser compatibility (collection formatting)", () => {
+test("collection formatting compatibility", () => {
   const deviations = cases.flatMap((c) => {
     const actual = formatCell(c.input);
-    const expectedRow = c.expectsTableFallback ? `a|${c.expected}` : `a | ${c.expected}`;
+    const expectedRow = `a | ${c.expected}`;
     if (actual === expectedRow) return [];
     return [
       [
@@ -63,6 +66,6 @@ test("java parser compatibility (collection formatting)", () => {
   });
 
   if (deviations.length > 0) {
-    assert.fail(`Formatter deviates from Java parser expectations:\n${deviations.join("\n")}`);
+    assert.fail(`Formatter deviates from collection formatting expectations:\n${deviations.join("\n")}`);
   }
 });

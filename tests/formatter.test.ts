@@ -122,12 +122,47 @@ const cases: FormatCase[] = [
     `)
   },
   {
+    name: "keeps empty quoted strings and aligns them",
+    input: table(`
+      Value|Length?
+      ""|0
+      ''|0
+    `),
+    expected: table(`
+      Value | Length?
+      ""    | 0
+      ''    | 0
+    `)
+  },
+  {
+    name: "preserves quoted leading and trailing whitespace",
+    input: table(`
+      Value|Length?
+      "  x  "|5
+      ' y '|3
+    `),
+    expected: table(`
+      Value   | Length?
+      "  x  " | 5
+      ' y '   | 3
+    `)
+  },
+  {
     name: "formats collection spacing and preserves quotes",
     input: table(`
       [1,2,"a, b"] | {x , "y"} | [key:"v,1", other : 'z']
     `),
     expected: table(`
       [1, 2, "a, b"] | {x, "y"} | [key: "v,1", other: 'z']
+    `)
+  },
+  {
+    name: "formats quoted map keys",
+    input: table(`
+      ["a:a":b] | ['[b]':c] | [plain:d, "q":'v']
+    `),
+    expected: table(`
+      ["a:a": b] | ['[b]': c] | [plain: d, "q": 'v']
     `)
   },
   {
@@ -150,6 +185,34 @@ const cases: FormatCase[] = [
       a<s><s><s><s> | b
       "x|y" | z
       '1|2' | 3
+    `)
+  },
+  {
+    name: "pipes inside quoted map keys are not separators",
+    input: table(`
+      a|b
+      long|["suc|c e|s s":3]
+    `),
+    expected: table(`
+      a    | b
+      long | ["suc|c e|s s": 3]
+    `)
+  },
+  {
+    name: "formats nested compound values from parser examples",
+    input: table(`
+      List|Size?
+      [[1,2],[3,4]]|2
+      [[a:4],[b:5]]|2
+      {[1,2],[1,2]}|1
+      [string:abc, list:[1,2], map:[a:4]]|3
+    `),
+    expected: table(`
+      List                                     | Size?
+      [[1, 2], [3, 4]]                         | 2
+      [[a: 4], [b: 5]]                         | 2
+      {[1, 2], [1, 2]}                         | 1
+      [string: abc, list: [1, 2], map: [a: 4]] | 3
     `)
   },
   {
@@ -207,6 +270,50 @@ const cases: FormatCase[] = [
     `)
   },
   {
+    name: "unquoted values containing commas keep table unchanged",
+    input: table(`
+      Value|Length?
+      World, hello|12
+    `),
+    expected: table(`
+      Value|Length?
+      World, hello|12
+    `)
+  },
+  {
+    name: "unquoted values containing colons keep table unchanged",
+    input: table(`
+      Map|Size?
+      key: value|1
+    `),
+    expected: table(`
+      Map|Size?
+      key: value|1
+    `)
+  },
+  {
+    name: "unquoted map keys containing spaces keep table unchanged",
+    input: table(`
+      Map|Size?
+      [key with spaces: value]|1
+    `),
+    expected: table(`
+      Map|Size?
+      [key with spaces: value]|1
+    `)
+  },
+  {
+    name: "empty maps with inner whitespace keep table unchanged",
+    input: table(`
+      Map|Size?
+      [: ]|0
+    `),
+    expected: table(`
+      Map|Size?
+      [: ]|0
+    `)
+  },
+  {
     name: "invalid collections keep table unchanged",
     input: table(`
       a|b
@@ -216,7 +323,6 @@ const cases: FormatCase[] = [
       []] | ok
       {}} | ok
       [: ] | ok
-      ["a": b] | ok
     `),
     expected: table(`
       a|b
@@ -226,7 +332,6 @@ const cases: FormatCase[] = [
       []] | ok
       {}} | ok
       [: ] | ok
-      ["a": b] | ok
     `)
   },
   {

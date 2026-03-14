@@ -72,7 +72,7 @@
     },
     "listLiteral": {
       "name": "meta.tabletest.list",
-      "begin": "\\[(?![^\\]\\r\\n]*:)",
+      "begin": "\\[(?!(?:[^\\]\"'\\r\\n]|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*')*:)",
       "beginCaptures": {
         "0": {
           "name": "punctuation.section.brackets.begin.tabletest"
@@ -158,7 +158,7 @@
     },
     "mapLiteral": {
       "name": "meta.tabletest.map",
-      "begin": "\\[(?=[^\\]\\r\\n]*:)",
+      "begin": "\\[(?=(?:[^\\]\"'\\r\\n]|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*')*:)",
       "beginCaptures": {
         "0": {
           "name": "punctuation.section.brackets.begin.tabletest"
@@ -208,7 +208,7 @@
     },
     "mapKey": {
       "name": "support.type.property-name.tabletest",
-      "match": "(?:\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*'|[^,:\\]\\r\\n]+)(?=\\s*:)"
+      "match": "(?:\\\\\\\"[^\\\\\\\"\\r\\n]*\\\\\\\"|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*'|[^,:\\]\\r\\n]+)(?=\\s*:)"
     }
   }
 }

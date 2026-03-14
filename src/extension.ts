@@ -12,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider([{ language: "tabletest" }], formatter),
+		vscode.languages.registerDocumentRangeFormattingEditProvider([{ language: "tabletest" }], formatter),
 		vscode.commands.registerCommand("tabletest.formatAllTables", async () => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {

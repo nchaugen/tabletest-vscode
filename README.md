@@ -18,7 +18,7 @@ This style keeps test data clear, maintainable, and easy to extend.
 - Rich syntax highlighting for TableTest tables:
   - Header cells
   - `//` table comments
-  - Map keys
+  - Map keys (quoted or unquoted)
   - Nested list/set/map structures
 - Table auto-formatting with aligned `|` columns
 - Cell value normalisation for lists/sets/maps
@@ -95,7 +95,7 @@ Cell values can be:
 - Line comments: `// comment`
 - Lists: `[a, b, c]`
 - Sets: `{a, b, c}`
-- Maps: `[k: v, x: y]`
+- Maps: `[k: v, "x": y, 'z': w]`
 - Nested combinations of the above
 
 ## Example

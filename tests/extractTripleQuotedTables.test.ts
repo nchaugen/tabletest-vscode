@@ -36,6 +36,24 @@ test("extracts implicit value table content and positions", () => {
   assert.strictEqual(text.slice(first.start, first.end), first.content);
 });
 
+test("extracts fully-qualified Java annotation value tables", () => {
+  const text = [
+    "@org.tabletest.junit.TableTest(",
+    "    \"\"\"",
+    "    a|b",
+    "    1|2",
+    "    \"\"\"",
+    ")"
+  ].join("\n");
+
+  const tables = extractTripleQuotedTables(text, "java");
+  assert.strictEqual(tables.length, 1);
+
+  const first = tables[0];
+  assert.ok(first);
+  assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
+});
+
 test("extracts named value table and ignores non-value arguments", () => {
   const text = [
     "@TableTest(",

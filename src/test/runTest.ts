@@ -30,6 +30,32 @@ function stripDefaultCliPaths(cliArgs: string[]): string[] {
   );
 }
 
+function seedJavaFormatterSettings(testRuntimeDir: string, userDataDir: string): void {
+  const formatterSettingsPath = path.join(testRuntimeDir, "java-formatter.xml");
+  const formatterSettings = [
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+    "<profiles version=\"21\">",
+    "  <profile kind=\"CodeFormatterProfile\" name=\"TableTestIntegration\" version=\"21\">",
+    "    <setting id=\"org.eclipse.jdt.core.formatter.continuation_indentation\" value=\"2\"/>",
+    "    <setting id=\"org.eclipse.jdt.core.formatter.continuation_indentation_for_array_initializer\" value=\"3\"/>",
+    "  </profile>",
+    "</profiles>"
+  ].join("\n");
+  fs.writeFileSync(formatterSettingsPath, formatterSettings, "utf8");
+
+  const userSettingsDir = path.join(userDataDir, "User");
+  fs.mkdirSync(userSettingsDir, { recursive: true });
+  const userSettingsPath = path.join(userSettingsDir, "settings.json");
+  const existingSettings = fs.existsSync(userSettingsPath)
+    ? JSON.parse(fs.readFileSync(userSettingsPath, "utf8")) as Record<string, unknown>
+    : {};
+  const mergedSettings = {
+    ...existingSettings,
+    "java.format.settings.url": formatterSettingsPath
+  };
+  fs.writeFileSync(userSettingsPath, JSON.stringify(mergedSettings, null, 2), "utf8");
+}
+
 async function installKotlinExtensionIfPossible(
   vscodeExecutablePath: string,
   userDataDir: string,
@@ -69,6 +95,7 @@ async function main(): Promise<void> {
     const extensionsDir = path.join(testRuntimeDir, "extensions");
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
+    seedJavaFormatterSettings(testRuntimeDir, userDataDir);
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode();
     await installKotlinExtensionIfPossible(vscodeExecutablePath, userDataDir, extensionsDir);

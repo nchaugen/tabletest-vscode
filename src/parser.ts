@@ -100,6 +100,24 @@ export type TableIssue = {
   message: string;
 };
 
+type TableIssueKind =
+  | "invalidCollectionSyntax"
+  | "invalidUnquotedValue"
+  | "invalidUnquotedMapKey";
+
+type ValidationRole = "cellValue" | "collectionItem" | "mapKey";
+
+type ValidationResult = {
+  formatted: string | null;
+  issueKind: TableIssueKind | null;
+};
+
+const invalidCollectionSyntaxMessage = "Invalid collection syntax in table cell; formatting skipped.";
+const invalidUnquotedValueMessage =
+  "Invalid unquoted value in table cell; quote values containing ',', ':', '[' or '|'.";
+const invalidUnquotedMapKeyMessage =
+  "Invalid unquoted map key in table cell; quote keys containing whitespace or reserved characters.";
+
 function splitRow(line: string): string[] {
   return splitRowWithSpans(line).map((cell) => cell.text);
 }
@@ -109,17 +127,29 @@ function splitRowWithSpans(line: string): CellSpan[] {
   let current = "";
   let cellStart = 0;
   let inQuotedCell: QuoteChar | null = null;
-  let sawNonWhitespace = false;
-
-  const isWhitespace = (value: string): boolean => value === " " || value === "\t";
+  let escaped = false;
 
   for (let i = 0; i < line.length; i += 1) {
     const char = line[i] ?? "";
     if (inQuotedCell) {
       current += char;
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
       if (char === inQuotedCell) {
         inQuotedCell = null;
       }
+      continue;
+    }
+
+    if ((char === "'" || char === "\"") && canStartQuotedSegment(line, i) && hasClosingQuoteAhead(line, i, char)) {
+      inQuotedCell = char;
+      current += char;
       continue;
     }
 
@@ -127,21 +157,7 @@ function splitRowWithSpans(line: string): CellSpan[] {
       cells.push({ text: current, start: cellStart, end: i });
       current = "";
       cellStart = i + 1;
-      sawNonWhitespace = false;
       continue;
-    }
-
-    if (!sawNonWhitespace && (char === "'" || char === "\"")) {
-      if (line.indexOf(char, i + 1) !== -1) {
-        inQuotedCell = char;
-      }
-      sawNonWhitespace = true;
-      current += char;
-      continue;
-    }
-
-    if (!sawNonWhitespace && !isWhitespace(char)) {
-      sawNonWhitespace = true;
     }
 
     current += char;
@@ -149,6 +165,34 @@ function splitRowWithSpans(line: string): CellSpan[] {
 
   cells.push({ text: current, start: cellStart, end: line.length });
   return cells;
+}
+
+function canStartQuotedSegment(line: string, index: number): boolean {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    const char = line[i] ?? "";
+    if (char === " " || char === "\t") continue;
+    return char === "|" || char === "[" || char === "{" || char === "(" || char === "," || char === ":";
+  }
+  return true;
+}
+
+function hasClosingQuoteAhead(line: string, index: number, quote: QuoteChar): boolean {
+  let escaped = false;
+  for (let i = index + 1; i < line.length; i += 1) {
+    const char = line[i] ?? "";
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === quote) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function findTableIssues(tableText: string): TableIssue[] {
@@ -174,11 +218,10 @@ export function findTableIssues(tableText: string): TableIssue[] {
     const cells = splitRowWithSpans(line);
     cells.forEach((cell) => {
       const trimmed = cell.text.trim();
-      if (trimmed === "" || isQuotedString(trimmed)) return;
+      if (trimmed === "") return;
 
-      const first = trimmed[0];
-      if (first !== "[" && first !== "{") return;
-      if (isCollectionValid(trimmed)) return;
+      const validation = validateAndFormatValue(trimmed, "cellValue");
+      if (validation.issueKind === null) return;
 
       const leadingWhitespace = cell.text.length - cell.text.trimStart().length;
       const trailingWhitespace = cell.text.length - cell.text.trimEnd().length;
@@ -188,7 +231,7 @@ export function findTableIssues(tableText: string): TableIssue[] {
       issues.push({
         start: (lineOffsets[lineIndex] ?? 0) + startInLine,
         end: (lineOffsets[lineIndex] ?? 0) + endInLine,
-        message: "Invalid collection syntax in table cell; formatting skipped."
+        message: messageForIssueKind(validation.issueKind)
       });
     });
   });
@@ -204,33 +247,43 @@ function isCollectionValid(value: string): boolean {
 function formatCellValue(value: string): string {
   const trimmed = value.trim();
   if (trimmed === "") return "";
-  return formatValueRecursively(trimmed);
+  const validation = validateAndFormatValue(trimmed, "cellValue");
+  return validation.formatted ?? trimmed;
 }
 
 function formatCollection(value: string): string | null {
-  if (value.length < 2) return null;
+  const validation = validateAndFormatCollection(value);
+  return validation.formatted;
+}
+
+function validateAndFormatCollection(value: string): ValidationResult {
+  if (value.length < 2) return invalidValidation("invalidCollectionSyntax");
   const first = value[0];
   const last = value[value.length - 1];
   if (first === "[" && last === "]") {
-    return formatBracketedCollection(value, "[", "]");
+    return validateAndFormatBracketedCollection(value, "[", "]");
   }
   if (first === "{" && last === "}") {
-    return formatBracketedCollection(value, "{", "}");
+    return validateAndFormatBracketedCollection(value, "{", "}");
   }
-  return null;
+  return invalidValidation("invalidCollectionSyntax");
 }
 
-function formatBracketedCollection(value: string, open: "[" | "{", close: "]" | "}"): string | null {
+function validateAndFormatBracketedCollection(
+  value: string,
+  open: "[" | "{",
+  close: "]" | "}"
+): ValidationResult {
   const inner = value.slice(1, -1);
   const trimmedInner = inner.trim();
-  if (open === "[" && trimmedInner === ":") {
-    return "[:]";
+  if (open === "[" && inner === ":") {
+    return validValidation("[:]");
   }
   if (trimmedInner === "") {
-    return `${open}${close}`;
+    return validValidation(`${open}${close}`);
   }
   const parts = splitTopLevel(inner, ",");
-  if (!parts) return null;
+  if (!parts) return invalidValidation("invalidCollectionSyntax");
   const items = parts.map((part) => part.trim());
 
   const mapSplits = items.map((item) => splitTopLevel(item, ":"));
@@ -238,35 +291,80 @@ function formatBracketedCollection(value: string, open: "[" | "{", close: "]" | 
   const hasMapEntry = mapSplits.some((split) => split !== null && split.length === 2);
 
   if (!hasMapEntry) {
-    if (hasMalformedColonItem) return null;
-    if (items.some((item) => item === "")) return null;
-    const formattedItems = items.map((item) => formatValueRecursively(item));
-    return `${open}${formattedItems.join(", ")}${close}`;
+    if (hasMalformedColonItem) return invalidValidation("invalidCollectionSyntax");
+    if (items.some((item) => item === "")) return invalidValidation("invalidCollectionSyntax");
+
+    const formattedItems: string[] = [];
+    for (const item of items) {
+      const validation = validateAndFormatValue(item, "collectionItem");
+      if (validation.issueKind !== null || validation.formatted === null) {
+        return invalidValidation(validation.issueKind ?? "invalidCollectionSyntax");
+      }
+      formattedItems.push(validation.formatted);
+    }
+    return validValidation(`${open}${formattedItems.join(", ")}${close}`);
   }
 
   if (mapSplits.some((split) => split === null || split.length !== 2)) {
-    return null;
+    return invalidValidation("invalidCollectionSyntax");
   }
 
-  const formattedEntries = mapSplits.map((split) => {
+  const formattedEntries = mapSplits.map((split): ValidationResult => {
     const key = split?.[0]?.trim() ?? "";
     const valuePart = split?.[1]?.trim() ?? "";
-    if (key === "" || isQuotedString(key) || valuePart === "") return null;
-    const formattedValue = formatValueRecursively(valuePart);
-    if (formattedValue === "") return null;
-    return `${key}: ${formattedValue}`;
+    if (key === "" || valuePart === "") return invalidValidation("invalidCollectionSyntax");
+
+    const formattedKey = validateAndFormatValue(key, "mapKey");
+    if (formattedKey.issueKind !== null || formattedKey.formatted === null) {
+      return invalidValidation(formattedKey.issueKind ?? "invalidUnquotedMapKey");
+    }
+
+    const formattedValue = validateAndFormatValue(valuePart, "collectionItem");
+    if (formattedValue.issueKind !== null || formattedValue.formatted === null || formattedValue.formatted === "") {
+      return invalidValidation(formattedValue.issueKind ?? "invalidCollectionSyntax");
+    }
+
+    return validValidation(`${formattedKey.formatted}: ${formattedValue.formatted}`);
   });
 
-  if (formattedEntries.some((entry) => entry === null)) return null;
-  return `${open}${formattedEntries.join(", ")}${close}`;
+  const firstInvalidEntry = formattedEntries.find((entry) => entry.issueKind !== null);
+  if (firstInvalidEntry) {
+    return invalidValidation(firstInvalidEntry.issueKind ?? "invalidCollectionSyntax");
+  }
+
+  return validValidation(
+    `${open}${formattedEntries
+      .map((entry) => entry.formatted)
+      .filter((entry): entry is string => entry !== null)
+      .join(", ")}${close}`
+  );
 }
 
-function formatValueRecursively(value: string): string {
+function validateAndFormatValue(value: string, role: ValidationRole): ValidationResult {
   const trimmed = value.trim();
-  if (trimmed === "") return "";
-  if (isQuotedString(trimmed)) return trimmed;
-  const formattedCollection = formatCollection(trimmed);
-  return formattedCollection ?? trimmed;
+  if (trimmed === "") {
+    return role === "cellValue" ? validValidation("") : invalidValidation("invalidCollectionSyntax");
+  }
+  if (isQuotedString(trimmed)) {
+    return validValidation(trimmed);
+  }
+  if (role === "mapKey") {
+    return isValidUnquotedMapKey(trimmed)
+      ? validValidation(trimmed)
+      : invalidValidation("invalidUnquotedMapKey");
+  }
+
+  const collectionValidation = validateAndFormatCollection(trimmed);
+  if (collectionValidation.formatted !== null) {
+    return collectionValidation;
+  }
+  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    return invalidValidation(collectionValidation.issueKind ?? "invalidCollectionSyntax");
+  }
+
+  return isValidUnquotedValue(trimmed)
+    ? validValidation(trimmed)
+    : invalidValidation("invalidUnquotedValue");
 }
 
 function isQuotedString(value: string): boolean {
@@ -274,6 +372,39 @@ function isQuotedString(value: string): boolean {
   const first = value[0];
   const last = value[value.length - 1];
   return (first === "'" || first === "\"") && last === first;
+}
+
+function isValidUnquotedValue(value: string): boolean {
+  return !/[,\[:|]/.test(value);
+}
+
+function isValidUnquotedMapKey(value: string): boolean {
+  return value.trim() === value && !/[\s,:|\[\]\{\}'"]/.test(value);
+}
+
+function validValidation(formatted: string): ValidationResult {
+  return {
+    formatted,
+    issueKind: null
+  };
+}
+
+function invalidValidation(issueKind: TableIssueKind): ValidationResult {
+  return {
+    formatted: null,
+    issueKind
+  };
+}
+
+function messageForIssueKind(issueKind: TableIssueKind): string {
+  switch (issueKind) {
+    case "invalidUnquotedValue":
+      return invalidUnquotedValueMessage;
+    case "invalidUnquotedMapKey":
+      return invalidUnquotedMapKeyMessage;
+    case "invalidCollectionSyntax":
+      return invalidCollectionSyntaxMessage;
+  }
 }
 
 function splitTopLevel(text: string, separator: "," | ":"): string[] | null {
@@ -596,7 +727,6 @@ type Range = {
 };
 
 const tripleQuote = "\"\"\"";
-const tableTestMarker = "@TableTest";
 export type AnnotationHostLanguage = "java" | "kotlin";
 
 export function extractAnnotationTables(
@@ -607,16 +737,11 @@ export function extractAnnotationTables(
   let searchIndex = 0;
 
   while (searchIndex < text.length) {
-    const annotationStart = text.indexOf(tableTestMarker, searchIndex);
-    if (annotationStart < 0) break;
+    const annotation = findNextTableTestAnnotation(text, searchIndex, language);
+    if (!annotation) break;
 
-    const annotationNameEnd = annotationStart + tableTestMarker.length;
-    const previousChar = annotationStart > 0 ? text[annotationStart - 1] ?? "" : "";
-    const nextChar = text[annotationNameEnd] ?? "";
-    if (isIdentifierCharacter(previousChar) || isIdentifierCharacter(nextChar)) {
-      searchIndex = annotationNameEnd;
-      continue;
-    }
+    const annotationStart = annotation.start;
+    const annotationNameEnd = annotation.end;
 
     const openParenIndex = skipWhitespaceAndComments(text, annotationNameEnd, text.length);
     if ((text[openParenIndex] ?? "") !== "(") {
@@ -641,6 +766,29 @@ export function extractAnnotationTables(
   }
 
   return results;
+}
+
+function findNextTableTestAnnotation(
+  text: string,
+  searchIndex: number,
+  language: AnnotationHostLanguage
+): { start: number; end: number } | null {
+  const pattern =
+    language === "java"
+      ? /@(?:[\w$]+\.)*TableTest(?![\w$])/g
+      : /@TableTest(?![\w$])/g;
+
+  pattern.lastIndex = searchIndex;
+  const match = pattern.exec(text);
+  if (!match) {
+    return null;
+  }
+
+  const start = match.index;
+  return {
+    start,
+    end: start + match[0].length
+  };
 }
 
 export function extractTripleQuotedTables(

@@ -1,10 +1,14 @@
 import * as fs from "node:fs";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import * as vscode from "vscode";
 import { formatTableString } from "./parser";
 import type { AnnotationHostLanguage } from "./parser";
 import { calculateDocumentEdits } from "./formatterEdits";
+import {
+  hasExplicitConfigurationValue,
+  indentStringForLevels,
+  readFormatterSetting,
+  resolveJavaFormatterSettingsPath
+} from "./formatterSettings";
 
 export class TableTestFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
   provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions): vscode.TextEdit[] {
@@ -20,7 +24,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     options: vscode.FormattingOptions
   ): vscode.TextEdit[] {
     if (document.languageId === "tabletest") {
-      return this.formatTableDocument(document, options);
+      return this.formatTableDocumentRange(document, range, options);
     }
     return this.formatTablesInRange(document, options, range);
   }
@@ -61,6 +65,25 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     return [vscode.TextEdit.replace(fullRange, formatted)];
   }
 
+  private formatTableDocumentRange(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    options: vscode.FormattingOptions
+  ): vscode.TextEdit[] {
+    const lineRange = this.rangeExpandedToFullLines(document, range);
+    if (!lineRange) {
+      return [];
+    }
+
+    const original = document.getText(lineRange);
+    const formatted = formatTableString(original, "", this.resolveTabSize(document, options));
+    if (formatted === original) {
+      return [];
+    }
+
+    return [vscode.TextEdit.replace(lineRange, formatted)];
+  }
+
   private annotationHostLanguageFor(languageId: string): AnnotationHostLanguage {
     if (languageId === "kotlin") {
       return "kotlin";
@@ -68,17 +91,28 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     return "java";
   }
 
+  private rangeExpandedToFullLines(document: vscode.TextDocument, range: vscode.Range): vscode.Range | null {
+    const startLine = range.start.line;
+    const resolvedEndLine =
+      range.end.character === 0 && range.end.line > startLine
+        ? range.end.line - 1
+        : range.end.line;
+
+    if (resolvedEndLine < startLine || resolvedEndLine >= document.lineCount) {
+      return null;
+    }
+
+    return new vscode.Range(
+      new vscode.Position(startLine, 0),
+      new vscode.Position(resolvedEndLine, document.lineAt(resolvedEndLine).text.length)
+    );
+  }
+
   private resolveExtraIndent(document: vscode.TextDocument, options: vscode.FormattingOptions): string {
     const config = vscode.workspace.getConfiguration("tabletest", document.uri);
     const configuredLevels = this.resolveConfiguredExtraIndentLevels(config, document);
-    const levels = Number.isFinite(configuredLevels) ? Math.max(0, Math.floor(configuredLevels)) : 0;
-    if (levels === 0) {
-      return "";
-    }
-
     const tabSize = this.resolveTabSize(document, options);
-    const unit = options.insertSpaces ? " ".repeat(tabSize) : "\t";
-    return unit.repeat(levels);
+    return indentStringForLevels(configuredLevels, tabSize, options.insertSpaces);
   }
 
   private resolveTabSize(document: vscode.TextDocument, options: vscode.FormattingOptions): number {
@@ -104,22 +138,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
   private hasExplicitExtraIndentConfiguration(
     inspect: unknown
   ): boolean {
-    if (!inspect || typeof inspect !== "object") {
-      return false;
-    }
-
-    const values = inspect as Record<string, unknown>;
-
-    const configuredValues = [
-      values.globalValue,
-      values.workspaceValue,
-      values.workspaceFolderValue,
-      values.globalLanguageValue,
-      values.workspaceLanguageValue,
-      values.workspaceFolderLanguageValue
-    ];
-
-    return configuredValues.some((value) => value !== undefined);
+    return hasExplicitConfigurationValue(inspect);
   }
 
   private resolveArrayExtraIndent(
@@ -143,8 +162,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     const resolvedIndentLevels = formatterIndentLevels ?? this.defaultJavaArrayContinuationIndentLevels();
 
     const tabSize = this.resolveTabSize(document, options);
-    const unit = options.insertSpaces ? " ".repeat(tabSize) : "\t";
-    return unit.repeat(resolvedIndentLevels);
+    return indentStringForLevels(resolvedIndentLevels, tabSize, options.insertSpaces);
   }
 
   private resolveJavaFormatterArrayIndentLevels(document: vscode.TextDocument): number | null {
@@ -195,71 +213,13 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     configuredUrl: string,
     document: vscode.TextDocument
   ): string | null {
-    const trimmed = configuredUrl.trim();
-    if (/^https?:\/\//i.test(trimmed)) {
-      return null;
-    }
-
-    if (/^file:/i.test(trimmed)) {
-      try {
-        return fileURLToPath(trimmed);
-      } catch {
-        return null;
-      }
-    }
-
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri) ?? vscode.workspace.workspaceFolders?.[0];
     const workspaceRoot = workspaceFolder?.uri.fsPath ?? "";
-    const expandedWorkspaceValue = this.expandJavaFormatterPathVariables(trimmed, workspaceRoot);
-
-    if (path.isAbsolute(expandedWorkspaceValue)) {
-      return expandedWorkspaceValue;
-    }
-    if (workspaceRoot === "") {
-      return null;
-    }
-
-    return path.resolve(workspaceRoot, expandedWorkspaceValue);
+    return resolveJavaFormatterSettingsPath(configuredUrl, workspaceRoot, process.env);
   }
 
   private readFormatterSetting(formatterXml: string, settingId: string): number | null {
-    const settingTags = formatterXml.match(/<setting\b[^>]*>/g) ?? [];
-    for (const settingTag of settingTags) {
-      const id = this.attributeValue(settingTag, "id");
-      if (id !== settingId) {
-        continue;
-      }
-
-      const value = this.attributeValue(settingTag, "value");
-      if (!value) {
-        return null;
-      }
-
-      const parsed = Number.parseInt(value, 10);
-      if (!Number.isFinite(parsed)) {
-        return null;
-      }
-      return Math.max(0, Math.floor(parsed));
-    }
-
-    return null;
-  }
-
-  private attributeValue(tag: string, name: string): string | null {
-    const pattern = new RegExp(`${name}\\s*=\\s*(['"])(.*?)\\1`);
-    const match = tag.match(pattern);
-    return match?.[2] ?? null;
-  }
-
-  private expandJavaFormatterPathVariables(configuredPath: string, workspaceRoot: string): string {
-    const withWorkspaceVariables =
-      workspaceRoot === ""
-        ? configuredPath
-        : configuredPath.replace(/\$\{workspaceFolder(?::[^}]+)?\}/g, workspaceRoot);
-    const withTildeExpanded = withWorkspaceVariables.startsWith("~/")
-      ? path.join(process.env.HOME ?? "~", withWorkspaceVariables.slice(2))
-      : withWorkspaceVariables;
-    return withTildeExpanded.replace(/\$\{env:([^}]+)\}/g, (_match, name) => process.env[name] ?? "");
+    return readFormatterSetting(formatterXml, settingId);
   }
 
   private defaultJavaArrayContinuationIndentLevels(): number {

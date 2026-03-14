@@ -24,6 +24,18 @@ test("extracts implicit Java string-array table and exposes argument replacement
   assert.strictEqual(text.slice(first.start, first.end).trim(), "{\"name|age\", \"Alice|30\", \"Bob|7\"}");
 });
 
+test("extracts fully-qualified Java string-array table", () => {
+  const text = "@org.tabletest.junit.TableTest({\"a|b\", \"1|2\"})";
+
+  const tables = extractAnnotationTables(text, "java");
+  assert.strictEqual(tables.length, 1);
+
+  const first = tables[0];
+  assert.ok(first);
+  assert.strictEqual(first.kind, "stringArray");
+  assert.strictEqual(first.rows.map((row: { content: string }) => row.content).join("\n"), "a|b\n1|2");
+});
+
 test("extracts named Java value array and keeps replacement range on the literal only", () => {
   const text = [
     "@TableTest(",

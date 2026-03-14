@@ -21,6 +21,14 @@ class Sample {
 //  ^ meta.tabletest.map
 //      ^ meta.tabletest.list
 //        ^ punctuation.separator.comma.tabletest
+    ["key with spaces": value]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.map
+//   ^ support.type.property-name.tabletest
+    "" | ''
+//  ^ meta.tabletest.row
+//  ^ string.quoted.double.tabletest
+//       ^ string.quoted.single.tabletest
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
@@ -122,6 +130,10 @@ class StringArrayNamedValue {
 //   ^ meta.tabletest.list
 //            ^ meta.tabletest.set
 //                      ^ meta.tabletest.map
+    "[\"[a]\": 1]|ok"
+//   ^ meta.tabletest.row
+//   ^ meta.tabletest.map
+//       ^ support.type.property-name.tabletest
   }, name = "x")
   void testStringArrayNamedValue() {}
 }
@@ -130,6 +142,12 @@ class NonTableArrayAnnotation {
   @Other({"a|b"})
 //          ^ - keyword.operator.tabletest.pipe
   void testNonTableArrayAnnotation() {}
+}
+
+class SimilarAnnotationName {
+  @TableTestX({"a|b"})
+//               ^ - keyword.operator.tabletest.pipe
+  void testSimilarAnnotationName() {}
 }
 
 class FullyQualifiedTableTestAnnotation {

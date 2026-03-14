@@ -21,6 +21,18 @@ class Sample {
 //  ^ meta.tabletest.map
 //      ^ meta.tabletest.list
 //        ^ punctuation.separator.comma.tabletest
+    ["key with spaces": value]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.map
+//   ^ support.type.property-name.tabletest
+    ['[a]': b]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.map
+//   ^ support.type.property-name.tabletest
+    "" | ''
+//  ^ meta.tabletest.row
+//  ^ string.quoted.double.tabletest
+//       ^ string.quoted.single.tabletest
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
@@ -84,4 +96,20 @@ class MultipleArgsWithNamedValue {
     """
   )
   fun testMultipleArgsWithNamedValue() {}
+}
+
+class SimilarAnnotationName {
+  @TableTestX("""
+    a | b
+//    ^ - keyword.operator.tabletest.pipe
+    """)
+  fun testSimilarAnnotationName() {}
+}
+
+class FullyQualifiedAnnotation {
+  @org.tabletest.junit.TableTest("""
+    a | b
+//    ^ - keyword.operator.tabletest.pipe
+    """)
+  fun testFullyQualifiedAnnotation() {}
 }

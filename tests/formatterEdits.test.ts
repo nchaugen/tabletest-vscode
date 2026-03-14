@@ -58,6 +58,28 @@ test("formats multiple tables without offset drift", () => {
   assert.strictEqual(updated, expected);
 });
 
+test("formats fully-qualified Java TableTest annotations", () => {
+  const text = [
+    "@org.tabletest.junit.TableTest(\"\"\"",
+    "a|b",
+    "1|22",
+    "\"\"\")"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@org.tabletest.junit.TableTest(\"\"\"",
+    "  a | b",
+    "  1 | 22",
+    "  \"\"\")"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});
+
 test("limits edits to tables fully contained in the range", () => {
   const text = [
     "prefix",
@@ -153,6 +175,24 @@ test("supports Kotlin-specific triple-quote termination when extracting tables",
   assert.strictEqual(kotlinEdits.length, 1);
 });
 
+test("formats Kotlin text-block table rows containing pipes in quoted map keys", () => {
+  const text = [
+    "@TableTest(\"\"\"a|b",
+    "long|[\"suc|c e|s s\":3]\"\"\")"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "kotlin");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const expected = [
+    "@TableTest(\"\"\"a    | b",
+    "long | [\"suc|c e|s s\": 3]\"\"\")"
+  ].join("\n");
+
+  assert.strictEqual(updated, expected);
+});
+
 test("formats implicit Java string-array table into canonical multiline form", () => {
   const text = "@TableTest({\"name|age\",\"Alice|30\",\"Bob|7\"})";
 
@@ -222,10 +262,28 @@ test("formats Java string-array rows that contain escaped double quotes in colle
   const updated = applyEdits(text, edits);
   const expected = [
     "@TableTest({",
-    "  \"a        | b \",",
+    "  \"a        | b   \",",
     "  \"[k: \\\"v\\\"] | ok\"",
     "})"
   ].join("\n");
 
   assert.strictEqual(updated, expected);
+});
+
+test("keeps Java string-array closing quotes aligned when map keys use escaped double quotes", () => {
+  const text = "@TableTest({\"Scenario|Collection literal\",\"Flat map|[a:1,b:2]\",\"Map with quoted keys|[':l e[f]t': [1,2], \\\" :r:i[g]h t\\\": [3,4]]\"})";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const literalLines = updated
+    .split("\n")
+    .filter((line) => line.trimStart().startsWith("\""));
+  assert.ok(literalLines.length >= 3);
+
+  const firstClosingQuoteIndex = literalLines[0]?.lastIndexOf("\"");
+  assert.ok(typeof firstClosingQuoteIndex === "number" && firstClosingQuoteIndex >= 0);
+  assert.ok(literalLines.every((line) => line.lastIndexOf("\"") === firstClosingQuoteIndex));
+  assert.ok(updated.includes("\"Map with quoted keys | [':l e[f]t': [1, 2], \\\" :r:i[g]h t\\\": [3, 4]]"));
 });
