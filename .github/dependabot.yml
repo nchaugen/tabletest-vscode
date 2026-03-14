@@ -12,21 +12,39 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "npm"
     groups:
       linting:
+        applies-to: "version-updates"
         patterns:
           - "eslint"
           - "@typescript-eslint/*"
       testing:
+        applies-to: "version-updates"
         patterns:
           - "mocha"
           - "@types/mocha"
           - "@vscode/test-electron"
           - "vscode-tmgrammar-test"
       build-and-publishing:
+        applies-to: "version-updates"
+        patterns:
+          - "typescript"
+          - "@types/node"
+          - "@vscode/vsce"
+      linting-security:
+        applies-to: "security-updates"
+        patterns:
+          - "eslint"
+          - "@typescript-eslint/*"
+      testing-security:
+        applies-to: "security-updates"
+        patterns:
+          - "mocha"
+          - "@types/mocha"
+          - "@vscode/test-electron"
+          - "vscode-tmgrammar-test"
+      build-and-publishing-security:
+        applies-to: "security-updates"
         patterns:
           - "typescript"
           - "@types/node"
@@ -46,10 +64,12 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "github-actions"
     groups:
       github-actions:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+      github-actions-security:
+        applies-to: "security-updates"
         patterns:
           - "*"
