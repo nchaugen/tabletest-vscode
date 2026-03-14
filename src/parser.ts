@@ -287,11 +287,10 @@ function validateAndFormatBracketedCollection(
   const items = parts.map((part) => part.trim());
 
   const mapSplits = items.map((item) => splitTopLevel(item, ":"));
-  const hasMalformedColonItem = mapSplits.some((split) => split !== null && split.length > 2);
   const hasMapEntry = mapSplits.some((split) => split !== null && split.length === 2);
 
   if (!hasMapEntry) {
-    if (hasMalformedColonItem) return invalidValidation("invalidCollectionSyntax");
+    if (items.some(hasAmbiguousBareColonValue)) return invalidValidation("invalidCollectionSyntax");
     if (items.some((item) => item === "")) return invalidValidation("invalidCollectionSyntax");
 
     const formattedItems: string[] = [];
@@ -353,6 +352,9 @@ function validateAndFormatValue(value: string, role: ValidationRole): Validation
       ? validValidation(trimmed)
       : invalidValidation("invalidUnquotedMapKey");
   }
+  if (looksLikeBrokenQuotedString(trimmed)) {
+    return invalidValidation("invalidUnquotedValue");
+  }
 
   const collectionValidation = validateAndFormatCollection(trimmed);
   if (collectionValidation.formatted !== null) {
@@ -371,15 +373,101 @@ function isQuotedString(value: string): boolean {
   if (value.length < 2) return false;
   const first = value[0];
   const last = value[value.length - 1];
-  return (first === "'" || first === "\"") && last === first;
+  if ((first !== "'" && first !== "\"") || last !== first) return false;
+
+  let escaped = false;
+  for (let i = 1; i < value.length - 1; i += 1) {
+    const char = value[i] ?? "";
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === first) {
+      return false;
+    }
+  }
+
+  return !escaped;
 }
 
 function isValidUnquotedValue(value: string): boolean {
-  return !/[,\[:|]/.test(value);
+  return !/[,\|]/.test(value) && !hasAmbiguousBareColonValue(value);
 }
 
 function isValidUnquotedMapKey(value: string): boolean {
   return value.trim() === value && !/[\s,:|\[\]\{\}'"]/.test(value);
+}
+
+function looksLikeBrokenQuotedString(value: string): boolean {
+  if (value.length < 2) return false;
+  const first = value[0];
+  const last = value[value.length - 1];
+  return (first === "'" || first === "\"") && last === first && !isQuotedString(value);
+}
+
+function hasAmbiguousBareColonValue(value: string): boolean {
+  const openerToCloser = { "[": "]", "{": "}", "(": ")" } as const;
+  const closers = new Set(Object.values(openerToCloser));
+  const isOpener = (candidate: string): candidate is "[" | "{" | "(" =>
+    Object.prototype.hasOwnProperty.call(openerToCloser, candidate);
+  const isCloser = (candidate: string): candidate is "]" | "}" | ")" => closers.has(candidate as "]" | "}" | ")");
+
+  const hasWhitespace = (candidate: string): boolean => candidate === " " || candidate === "\t";
+
+  const stack: string[] = [];
+  let quote: QuoteChar | null = null;
+  let escaped = false;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index] ?? "";
+
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (char === "'" || char === "\"") {
+      quote = char;
+      continue;
+    }
+
+    if (isOpener(char)) {
+      stack.push(openerToCloser[char]);
+      continue;
+    }
+
+    if (isCloser(char)) {
+      const expected = stack[stack.length - 1];
+      if (expected === char) {
+        stack.pop();
+      }
+      continue;
+    }
+
+    if (char === ":" && stack.length === 0) {
+      const previous = value[index - 1] ?? "";
+      const next = value[index + 1] ?? "";
+      if (hasWhitespace(previous) || hasWhitespace(next)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function validValidation(formatted: string): ValidationResult {
