@@ -53,12 +53,7 @@ export function formatTableString(tableText: string, baseIndent: string = "", ta
 
   let rowIndex = 0;
   const trimTrailingWhitespace = (value: string): string => value.replace(/[ \t]+$/g, "");
-  const normaliseCommentIndent = (value: string): string => {
-    if (baseIndent === "") {
-      return trimTrailingWhitespace(value);
-    }
-    return trimTrailingWhitespace(value.trimStart());
-  };
+  const normaliseCommentIndent = (value: string): string => trimTrailingWhitespace(value.trimStart());
   const outLines = lineInfos.map((info) => {
     if (info.kind === "raw") {
       if (!info.isComment) {
