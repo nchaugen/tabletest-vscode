@@ -93,6 +93,9 @@
           "match": "\\s+"
         },
         {
+          "include": "#quotedMapKey"
+        },
+        {
           "include": "#mapLiteral"
         },
         {
@@ -188,6 +191,9 @@
           "include": "#setLiteral"
         },
         {
+          "include": "#quotedMapKey"
+        },
+        {
           "include": "#mapKey"
         },
         {
@@ -206,9 +212,59 @@
         }
       ]
     },
+    "quotedMapKey": {
+      "patterns": [
+        { "include": "#mapKeyDoubleQuoted" },
+        { "include": "#mapKeySingleQuoted" }
+      ]
+    },
+    "mapKeyDoubleQuoted": {
+      "name": "string.quoted.double.tabletest",
+      "contentName": "support.type.property-name.tabletest",
+      "begin": "\\\"(?=(?:\\\\.|[^\\\"\\\\\\r\\n])*\\\"\\s*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "\\\"(?=\\s*:)",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.tabletest",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "mapKeySingleQuoted": {
+      "name": "string.quoted.single.tabletest",
+      "contentName": "support.type.property-name.tabletest",
+      "begin": "'(?=(?:\\\\.|[^'\\\\\\r\\n])*'\\s*:)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "'(?=\\s*:)",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.tabletest",
+          "match": "\\\\."
+        }
+      ]
+    },
     "mapKey": {
       "name": "support.type.property-name.tabletest",
-      "match": "(?:\\\\\\\"[^\\\\\\\"\\r\\n]*\\\\\\\"|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*'|[^,:\\]\\r\\n]+)(?=\\s*:)"
+      "match": "[^,:\\]\\|\\r\\n]+(?=\\s*:)"
     }
   }
 }

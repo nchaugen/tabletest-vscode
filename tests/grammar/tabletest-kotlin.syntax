@@ -24,11 +24,24 @@ class Sample {
     ["key with spaces": value]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//   ^ support.type.property-name.tabletest
+//    ^ string.quoted.double.tabletest
+//    ^ support.type.property-name.tabletest
     ['[a]': b]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//   ^ support.type.property-name.tabletest
+//    ^ string.quoted.single.tabletest
+//    ^ support.type.property-name.tabletest
+    ["[a]": 1, '{b}': 2, "(c)": 3]
+//  ^ meta.tabletest.row
+//  ^ meta.tabletest.map
+//    ^ string.quoted.double.tabletest
+//    ^ support.type.property-name.tabletest
+//    ^ - punctuation.section.brackets.begin.tabletest
+//              ^ string.quoted.single.tabletest
+//              ^ support.type.property-name.tabletest
+//              ^ - punctuation.section.braces.begin.tabletest
+//                         ^ string.quoted.double.tabletest
+//                         ^ support.type.property-name.tabletest
     "" | ''
 //  ^ meta.tabletest.row
 //  ^ string.quoted.double.tabletest

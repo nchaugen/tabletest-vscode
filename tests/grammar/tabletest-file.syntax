@@ -24,6 +24,19 @@ Scenario | "b" | 'c'
 //  ^ support.type.property-name.tabletest
 //                            ^ meta.tabletest.map
 //                             ^ support.type.property-name.tabletest
+     ["[a]": 1, '{b}': 2, "(c)": 3]
+// ^ meta.tabletest.row
+//     ^ meta.tabletest.map
+//      ^ support.type.property-name.tabletest
+//       ^ support.type.property-name.tabletest
+//       ^ - punctuation.section.brackets.begin.tabletest
+//         ^ - punctuation.section.brackets.end.tabletest
+//                ^ support.type.property-name.tabletest
+//                 ^ support.type.property-name.tabletest
+//                 ^ - punctuation.section.braces.begin.tabletest
+//                   ^ - punctuation.section.braces.end.tabletest
+//                          ^ support.type.property-name.tabletest
+//                           ^ support.type.property-name.tabletest
 [[1, 2], [3, 4]] | {[a: 4], [b: 5]}
 // ^ meta.tabletest.row
 // ^ meta.tabletest.list
