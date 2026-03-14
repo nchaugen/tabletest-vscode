@@ -44,7 +44,7 @@ test("does not report issues for quoted map keys", () => {
   assert.deepStrictEqual(issues, []);
 });
 
-test("reports unquoted scalar values containing commas", () => {
+test("does not report unquoted scalar values containing commas", () => {
   const table = [
     "",
     "Value|Length?",
@@ -53,18 +53,10 @@ test("reports unquoted scalar values containing commas", () => {
   ].join("\n");
 
   const issues = findTableIssues(table);
-  assert.strictEqual(issues.length, 1);
-
-  const issue = issues[0];
-  assert.ok(issue);
-  assert.strictEqual(table.slice(issue.start, issue.end), "World, hello");
-  assert.strictEqual(
-    issue.message,
-    "Invalid unquoted value in table cell; quote values containing ',', ':', '[' or '|'."
-  );
+  assert.deepStrictEqual(issues, []);
 });
 
-test("reports unquoted scalar values containing colons", () => {
+test("does not report unquoted scalar values containing colons", () => {
   const table = [
     "",
     "Map|Size?",
@@ -73,15 +65,7 @@ test("reports unquoted scalar values containing colons", () => {
   ].join("\n");
 
   const issues = findTableIssues(table);
-  assert.strictEqual(issues.length, 1);
-
-  const issue = issues[0];
-  assert.ok(issue);
-  assert.strictEqual(table.slice(issue.start, issue.end), "key: value");
-  assert.strictEqual(
-    issue.message,
-    "Invalid unquoted value in table cell; quote values containing ',', ':', '[' or '|'."
-  );
+  assert.deepStrictEqual(issues, []);
 });
 
 test("reports unquoted map keys containing spaces", () => {

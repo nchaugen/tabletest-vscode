@@ -109,7 +109,7 @@ type ValidationResult = {
 
 const invalidCollectionSyntaxMessage = "Invalid collection syntax in table cell; formatting skipped.";
 const invalidUnquotedValueMessage =
-  "Invalid unquoted value in table cell; quote values containing ',', ':', '[' or '|'.";
+  "Invalid unquoted value in table cell; quote values that would be parsed as collections or contain '|'.";
 const invalidUnquotedMapKeyMessage =
   "Invalid unquoted map key in table cell; quote keys containing whitespace or reserved characters.";
 
@@ -359,7 +359,7 @@ function validateAndFormatValue(value: string, role: ValidationRole): Validation
     return invalidValidation(collectionValidation.issueKind ?? "invalidCollectionSyntax");
   }
 
-  return isValidUnquotedValue(trimmed)
+  return isValidUnquotedValue(trimmed, role)
     ? validValidation(trimmed)
     : invalidValidation("invalidUnquotedValue");
 }
@@ -389,7 +389,11 @@ function isQuotedString(value: string): boolean {
   return !escaped;
 }
 
-function isValidUnquotedValue(value: string): boolean {
+function isValidUnquotedValue(value: string, role: Exclude<ValidationRole, "mapKey">): boolean {
+  if (role === "cellValue") {
+    return !/\|/.test(value);
+  }
+
   return !/[,\|]/.test(value) && !hasAmbiguousBareColonValue(value);
 }
 

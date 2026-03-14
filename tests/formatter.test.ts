@@ -270,25 +270,25 @@ const cases: FormatCase[] = [
     `)
   },
   {
-    name: "unquoted values containing commas keep table unchanged",
+    name: "unquoted values containing commas are formatted as valid scalar cells",
     input: table(`
       Value|Length?
       World, hello|12
     `),
     expected: table(`
-      Value|Length?
-      World, hello|12
+      Value        | Length?
+      World, hello | 12
     `)
   },
   {
-    name: "unquoted values containing colons keep table unchanged",
+    name: "unquoted values containing colons are formatted as valid scalar cells",
     input: table(`
       Map|Size?
       key: value|1
     `),
     expected: table(`
-      Map|Size?
-      key: value|1
+      Map        | Size?
+      key: value | 1
     `)
   },
   {

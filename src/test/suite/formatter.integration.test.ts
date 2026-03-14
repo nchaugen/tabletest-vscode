@@ -259,6 +259,8 @@ suite("TableTest formatter integration", () => {
       "Value|Length?",
       "\"\"|0",
       "\"  x  \"|5",
+      "World, hello|12",
+      "key: value|9",
       "[string:abc, list:[1,2], map:[a:4]]|3"
     ].join("\n");
 
@@ -266,6 +268,8 @@ suite("TableTest formatter integration", () => {
       "Value                                    | Length?",
       "\"\"                                       | 0",
       "\"  x  \"                                  | 5",
+      "World, hello                             | 12",
+      "key: value                               | 9",
       "[string: abc, list: [1, 2], map: [a: 4]] | 3"
     ].join("\n");
 
@@ -504,22 +508,22 @@ suite("TableTest formatter integration", () => {
     assert.strictEqual(diagnostics.length, 0);
   });
 
-  test("surfaces diagnostics for invalid unquoted values in standalone table files", async () => {
+  test("does not surface diagnostics for unquoted scalar values containing commas or colons in standalone table files", async () => {
     const input = [
       "Value|Length?",
-      "World, hello|12"
+      "World, hello|12",
+      "key: value|9"
     ].join("\n");
 
     const document = await openDocument("tabletest", input);
-    const diagnostics = await waitForDiagnostics(document);
-    assert.strictEqual(diagnostics.length, 1);
-    assert.strictEqual(document.getText(diagnostics[0].range), "World, hello");
+    const diagnostics = await waitForDiagnosticCount(document, 0, 500);
+    assert.strictEqual(diagnostics.length, 0);
   });
 
   test("surfaces multiple diagnostics in standalone table files and clears them after a fix", async () => {
     const input = [
       "Value|Length?",
-      "World, hello|12",
+      "[: ]|0",
       "[key with spaces: value]|1"
     ].join("\n");
 
@@ -531,7 +535,7 @@ suite("TableTest formatter integration", () => {
       document,
       [
         "Value|Length?",
-        "\"World, hello\"|12",
+        "[:]|0",
         "[\"key with spaces\": value]|1"
       ].join("\n")
     );
@@ -543,7 +547,7 @@ suite("TableTest formatter integration", () => {
   test("clears diagnostics when a standalone table document closes", async () => {
     const input = [
       "Value|Length?",
-      "World, hello|12"
+      "[key with spaces: value]|1"
     ].join("\n");
 
     const document = await openDocument("tabletest", input);
