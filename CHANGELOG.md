@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Formatter and diagnostics support for quoted map keys in map literals (both `"key"` and `'key'`), while preserving key quoting style and normalising map spacing.
+- Diagnostics for invalid unquoted scalar values and invalid unquoted map keys in TableTest cells.
+- Formatting and diagnostics support for fully-qualified Java `@org.tabletest.junit.TableTest(...)` annotations.
+- Standalone `.table` range formatting support so `Format Selection` works as documented.
+
+### Changed
+
+- Table parsing and formatting now follow the canonical TableTest parser more closely for quoted-map-key cases and other edge-case bare values.
+- Comment indentation now normalises consistently to the table left edge in standalone files and Java/Kotlin host strings.
+- Local test entrypoints now mirror CI with `npm run test:unit`, `npm run test:integration:strict`, and `npm run test:full`.
 
 ## [0.0.6] - 2026-03-08
 

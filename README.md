@@ -23,11 +23,13 @@ This style keeps test data clear, maintainable, and easy to extend.
 - Table auto-formatting with aligned `|` columns
 - Cell value normalisation for lists/sets/maps
 - Support for Java, Kotlin, and standalone `.table` files
-- Warnings for malformed collection cells in tables, including:
+- Warnings for invalid table cell syntax, including:
+  - unquoted scalar values that need quoting (for example `World, hello` or `key: value`)
+  - unquoted map keys that need quoting (for example `[key with spaces: value]`)
   - trailing-comma empty elements (for example `[a, b,]`)
   - map entries without values (for example `[key:]`)
   - map values with extra top-level colons (for example `[a: b:c:d]`)
-- Automatic language injection for `@TableTest` in Java and Kotlin
+- Automatic language injection for `@TableTest` in Java and Kotlin, plus fully-qualified Java `@org.tabletest.junit.TableTest(...)`
 
 ## Supported contexts
 
@@ -35,6 +37,7 @@ This style keeps test data clear, maintainable, and easy to extend.
 | --- | --- | --- |
 | `.table` file | ✅ `source.tabletest` grammar | ✅ Standard `Format Document` / `Format Selection` |
 | Java / Kotlin `@TableTest(...)` triple-quoted string | ✅ Injection grammar (`source.java` / `source.kotlin`) | ✅ `TableTest: Format All Tables in Document` |
+| Java `@TableTest({ ... })` string-array table | ✅ Java injection grammar | ✅ `TableTest: Format All Tables in Document` |
 
 Formatting in Java/Kotlin is intentionally exposed as a command so normal Java/Kotlin formatter entry points are not overridden.
 
@@ -122,6 +125,7 @@ Use Command Palette:
 Typical annotation forms:
 - `@TableTest("""...""")`
 - `@TableTest(value = """...""")`
+- `@org.tabletest.junit.TableTest("""...""")` (Java)
 - `@TableTest({ "header|value", "row|value" })` (Java)
 - `@TableTest(value = { "header|value", "row|value" })` (Java)
 
@@ -140,7 +144,7 @@ Typical annotation forms:
   - Java static string-array literal (`{"...", "..."}`).
 - For implicit Java string-array formatting, the formatter normalises boundaries to `@TableTest({` ... `})`.
 - Implicit extraction is only used when there is exactly one positional argument and no named arguments.
-- Diagnostics currently focus on malformed collection cells (lists/sets/maps), including invalid trailing commas and invalid map entries.
+- Diagnostics currently focus on syntax problems inside recognisable table cells, including malformed list/set/map values and unquoted values or map keys that require quoting.
 
 ## Contributing
 
