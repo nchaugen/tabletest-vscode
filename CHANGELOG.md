@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7] - 2026-03-15
+
 ### Added
 
 - Formatter and diagnostics support for quoted map keys in map literals (both `"key"` and `'key'`), while preserving key quoting style and normalising map spacing.
@@ -133,8 +135,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table formatting command (`TableTest: Format All Tables in Document`).
 - Core cell normalisation and column alignment for TableTest table syntax.
 
-[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.6...HEAD
+[Unreleased]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.7...HEAD
+[0.0.7]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.6...v0.0.7
 [0.0.6]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.5...v0.0.6
 [0.0.5]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/nchaugen/tabletest-vscode/releases/tag/v0.0.3
+

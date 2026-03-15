@@ -3,7 +3,7 @@
   "displayName": "TableTest",
   "description": "IDE support for readable TableTest data-driven tables in Java, Kotlin, and .table files.",
   "icon": "tabletest_128x128.png",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "tabletest",
   "repository": {
     "type": "git",
