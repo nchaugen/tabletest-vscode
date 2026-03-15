@@ -4,48 +4,43 @@ class Sample {
     """
     a | "b" | 'c'
 //  ^ meta.tabletest.header
-//  ^ markup.heading.tabletest
+//  ^ entity.name.type.tabletest.probe.header
 //  ^ entity.name.column.tabletest
-//    ^ keyword.operator.tabletest.pipe
-//      ^ string.quoted.double.tabletest
-//          ^ keyword.operator.tabletest.pipe
-//            ^ string.quoted.single.tabletest
+//    ^ punctuation.separator.pipe.tabletest
+//      ^ constant.numeric.tabletest.quote
+//          ^ punctuation.separator.pipe.tabletest
+//            ^ constant.numeric.tabletest.quote
     [1, 2] | {x, y} | [k: v]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.list
 //             ^ meta.tabletest.set
 //                       ^ meta.tabletest.map
-//                     ^ support.type.property-name.tabletest
+//                     ^ keyword.control.tabletest
     [x: [1, 2]]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
 //      ^ meta.tabletest.list
-//        ^ punctuation.separator.comma.tabletest
+//        ^ constant.numeric.tabletest.separator
     ["key with spaces": value]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//    ^ string.quoted.double.tabletest
-//    ^ support.type.property-name.tabletest
+//    ^ keyword.control.tabletest
     ['[a]': b]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//    ^ string.quoted.single.tabletest
-//    ^ support.type.property-name.tabletest
+//    ^ keyword.control.tabletest
     ["[a]": 1, '{b}': 2, "(c)": 3]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//    ^ string.quoted.double.tabletest
-//    ^ support.type.property-name.tabletest
+//    ^ keyword.control.tabletest
 //    ^ - punctuation.section.brackets.begin.tabletest
-//              ^ string.quoted.single.tabletest
-//              ^ support.type.property-name.tabletest
+//              ^ keyword.control.tabletest
 //              ^ - punctuation.section.braces.begin.tabletest
-//                         ^ string.quoted.double.tabletest
-//                         ^ support.type.property-name.tabletest
+//                         ^ keyword.control.tabletest
     "" | ''
 //  ^ meta.tabletest.row
-//  ^ string.quoted.double.tabletest
-//       ^ string.quoted.single.tabletest
+//  ^ constant.numeric.tabletest.quote
+//       ^ constant.numeric.tabletest.quote
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
@@ -57,7 +52,7 @@ class Sample {
 class SameLineStart {
   @TableTest("""
     a | b
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
     """)
   fun testSameLineStart() {}
 }
@@ -65,7 +60,7 @@ class SameLineStart {
 class ValueArgument {
   @TableTest(other = "ignore", value = """
     a | b
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
     """, another = "123")
   fun testValueArgument() {}
 }
@@ -73,10 +68,10 @@ class ValueArgument {
 class EscapedTerminator {
   @TableTest("""
     a | \""" | b
-//    ^ keyword.operator.tabletest.pipe
-//           ^ - keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
+//           ^ - punctuation.separator.pipe.tabletest
     c | d
-//    ^ - keyword.operator.tabletest.pipe
+//    ^ - punctuation.separator.pipe.tabletest
     """)
   fun testEscapedTerminator() {}
 }
@@ -84,7 +79,7 @@ class EscapedTerminator {
 class SameLineClose {
   @TableTest("""
     a | b """
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
   )
   fun testSameLineClose() {}
 }
@@ -94,7 +89,7 @@ class CommentBeforeImplicitValue {
     // comment before value
     """
     left | right
-//       ^ keyword.operator.tabletest.pipe
+//       ^ punctuation.separator.pipe.tabletest
     """
   )
   fun testCommentBeforeImplicitValue() {}
@@ -115,7 +110,7 @@ class MultipleArgsWithNamedValue {
     name = "custom name",
     value = """
     one | two
-//      ^ keyword.operator.tabletest.pipe
+//      ^ punctuation.separator.pipe.tabletest
     """
   )
   fun testMultipleArgsWithNamedValue() {}
@@ -124,7 +119,7 @@ class MultipleArgsWithNamedValue {
 class SimilarAnnotationName {
   @TableTestX("""
     a | b
-//    ^ - keyword.operator.tabletest.pipe
+//    ^ - punctuation.separator.pipe.tabletest
     """)
   fun testSimilarAnnotationName() {}
 }
@@ -132,7 +127,7 @@ class SimilarAnnotationName {
 class FullyQualifiedAnnotation {
   @org.tabletest.junit.TableTest("""
     a | b
-//    ^ - keyword.operator.tabletest.pipe
+//    ^ - punctuation.separator.pipe.tabletest
     """)
   fun testFullyQualifiedAnnotation() {}
 }

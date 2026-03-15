@@ -1,42 +1,42 @@
 // SYNTAX TEST "source.tabletest" "TableTest .table"
 Scenario | "b" | 'c'
 // ^ meta.tabletest.header
-// ^ markup.heading.tabletest
+// ^ entity.name.type.tabletest.probe.header
 // ^ entity.name.column.tabletest
-//       ^ keyword.operator.tabletest.pipe
-//         ^ string.quoted.double.tabletest
-//             ^ keyword.operator.tabletest.pipe
-//               ^ string.quoted.single.tabletest
+//       ^ punctuation.separator.pipe.tabletest
+//         ^ constant.numeric.tabletest.quote
+//             ^ punctuation.separator.pipe.tabletest
+//               ^ constant.numeric.tabletest.quote
 [1, 2] | {x, y} | [k: v]
 // ^ meta.tabletest.row
 // ^ meta.tabletest.list
 //       ^ meta.tabletest.set
 //                ^ meta.tabletest.map
-//                 ^ support.type.property-name.tabletest
+//                 ^ keyword.control.tabletest
 [x: [1, 2]]
 // ^ meta.tabletest.row
 // ^ meta.tabletest.map
 //  ^ meta.tabletest.list
-//    ^ punctuation.separator.comma.tabletest
+//    ^ constant.numeric.tabletest.separator
 ["key with spaces": value] | ['key:colon': other]
 // ^ meta.tabletest.row
 // ^ meta.tabletest.map
-//  ^ support.type.property-name.tabletest
+//  ^ keyword.control.tabletest
 //                            ^ meta.tabletest.map
-//                             ^ support.type.property-name.tabletest
+//                             ^ keyword.control.tabletest
      ["[a]": 1, '{b}': 2, "(c)": 3]
 // ^ meta.tabletest.row
 //     ^ meta.tabletest.map
-//      ^ support.type.property-name.tabletest
-//       ^ support.type.property-name.tabletest
+//      ^ keyword.control.tabletest
+//       ^ keyword.control.tabletest
 //       ^ - punctuation.section.brackets.begin.tabletest
 //         ^ - punctuation.section.brackets.end.tabletest
-//                ^ support.type.property-name.tabletest
-//                 ^ support.type.property-name.tabletest
+//                ^ keyword.control.tabletest
+//                 ^ keyword.control.tabletest
 //                 ^ - punctuation.section.braces.begin.tabletest
 //                   ^ - punctuation.section.braces.end.tabletest
-//                          ^ support.type.property-name.tabletest
-//                           ^ support.type.property-name.tabletest
+//                          ^ keyword.control.tabletest
+//                           ^ keyword.control.tabletest
 [[1, 2], [3, 4]] | {[a: 4], [b: 5]}
 // ^ meta.tabletest.row
 // ^ meta.tabletest.list

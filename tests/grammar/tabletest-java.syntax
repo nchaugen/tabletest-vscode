@@ -4,52 +4,45 @@ class Sample {
     """
     a | "b" | 'c'
 //  ^ meta.tabletest.header
-//  ^ markup.heading.tabletest
+//  ^ entity.name.type.tabletest.probe.header
 //  ^ entity.name.column.tabletest
-//    ^ keyword.operator.tabletest.pipe
-//      ^ string.quoted.double.tabletest
-//          ^ keyword.operator.tabletest.pipe
-//            ^ string.quoted.single.tabletest
+//    ^ punctuation.separator.pipe.tabletest
+//      ^ constant.numeric.tabletest.quote
+//          ^ punctuation.separator.pipe.tabletest
+//            ^ constant.numeric.tabletest.quote
     [1, 2] | {x, y} | [k: v]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.list
 //             ^ meta.tabletest.set
 //                       ^ meta.tabletest.map
-//                     ^ support.type.property-name.tabletest
+//                     ^ keyword.control.tabletest
     [x: [1, 2]]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
 //      ^ meta.tabletest.list
-//        ^ punctuation.separator.comma.tabletest
+//        ^ constant.numeric.tabletest.separator
     ["key with spaces": value]
 //  ^ meta.tabletest.row
 //  ^ meta.tabletest.map
-//    ^ string.quoted.double.tabletest
-//    ^ support.type.property-name.tabletest
+//    ^ keyword.control.tabletest
     is not empty  | ["(s)u[c]c{e}ss": false]
 //  ^ meta.tabletest.row
-//                    ^ string.quoted.double.tabletest
-//                    ^ support.type.property-name.tabletest
-//                        ^ string.quoted.double.tabletest
-//                        ^ support.type.property-name.tabletest
+//                    ^ keyword.control.tabletest
+//                        ^ keyword.control.tabletest
 //                        ^ - punctuation.section.brackets.begin.tabletest
-//                            ^ string.quoted.double.tabletest
-//                            ^ support.type.property-name.tabletest
+//                            ^ keyword.control.tabletest
 //                            ^ - punctuation.section.braces.begin.tabletest
     has size      | ['[s]u(c)c{e}s[s': 3]
 //  ^ meta.tabletest.row
-//                    ^ string.quoted.single.tabletest
-//                    ^ support.type.property-name.tabletest
+//                    ^ keyword.control.tabletest
 //                    ^ - punctuation.section.brackets.begin.tabletest
-//                        ^ string.quoted.single.tabletest
-//                        ^ support.type.property-name.tabletest
-//                            ^ string.quoted.single.tabletest
-//                            ^ support.type.property-name.tabletest
+//                        ^ keyword.control.tabletest
+//                            ^ keyword.control.tabletest
 //                            ^ - punctuation.section.braces.begin.tabletest
     "" | ''
 //  ^ meta.tabletest.row
-//  ^ string.quoted.double.tabletest
-//       ^ string.quoted.single.tabletest
+//  ^ constant.numeric.tabletest.quote
+//       ^ constant.numeric.tabletest.quote
     // table comment
 //  ^ comment.line.double-slash.tabletest
     """,
@@ -61,7 +54,7 @@ class Sample {
 class SameLineStart {
   @TableTest("""
     a | b
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
     """)
   void testSameLineStart() {}
 }
@@ -69,7 +62,7 @@ class SameLineStart {
 class ValueArgument {
   @TableTest(other = "ignore", value = """
     a | b
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
     """, another = "123")
   void testValueArgument() {}
 }
@@ -77,10 +70,10 @@ class ValueArgument {
 class EscapedTerminator {
   @TableTest("""
     a | \""" | b
-//    ^ keyword.operator.tabletest.pipe
-//           ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
+//           ^ punctuation.separator.pipe.tabletest
     c | d
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
     """)
   void testEscapedTerminator() {}
 }
@@ -88,7 +81,7 @@ class EscapedTerminator {
 class SameLineClose {
   @TableTest("""
     a | b """
-//    ^ keyword.operator.tabletest.pipe
+//    ^ punctuation.separator.pipe.tabletest
   )
   void testSameLineClose() {}
 }
@@ -98,7 +91,7 @@ class CommentBeforeImplicitValue {
     // comment before value
     """
     left | right
-//       ^ keyword.operator.tabletest.pipe
+//       ^ punctuation.separator.pipe.tabletest
     """
   )
   void testCommentBeforeImplicitValue() {}
@@ -110,10 +103,10 @@ class LeadingCommentBeforeHeader {
     // leading table comment
 //  ^ comment.line.double-slash.tabletest
     scenario | result?
-//  ^ markup.heading.tabletest
+//  ^ entity.name.type.tabletest.probe.header
 //  ^ meta.tabletest.header
 //  ^ entity.name.column.tabletest
-//           ^ keyword.operator.tabletest.pipe
+//           ^ punctuation.separator.pipe.tabletest
     one      | ok
 //  ^ meta.tabletest.row
     """
@@ -126,9 +119,9 @@ class StringArrayLeadingCommentBeforeHeader {
     "// leading array comment",
 //   ^ comment.line.double-slash.tabletest
     "scenario|result?",
-//   ^ markup.heading.tabletest
+//   ^ entity.name.type.tabletest.probe.header
 //   ^ meta.tabletest.header
-//           ^ keyword.operator.tabletest.pipe
+//           ^ punctuation.separator.pipe.tabletest
     "one|ok"
 //   ^ meta.tabletest.row
   })
@@ -140,7 +133,7 @@ class MultipleArgsWithNamedValue {
     name = "custom name",
     value = """
     one | two
-//      ^ keyword.operator.tabletest.pipe
+//      ^ punctuation.separator.pipe.tabletest
     """
   )
   void testMultipleArgsWithNamedValue() {}
@@ -149,13 +142,13 @@ class MultipleArgsWithNamedValue {
 class StringArrayImplicitValue {
   @TableTest({
     "name|age",
-//   ^ markup.heading.tabletest
+//   ^ entity.name.type.tabletest.probe.header
 //   ^ meta.tabletest.header
-//       ^ keyword.operator.tabletest.pipe
+//       ^ punctuation.separator.pipe.tabletest
     "Alice|30"
 //   ^ meta.tabletest.row
-//   ^ - markup.heading.tabletest
-//        ^ keyword.operator.tabletest.pipe
+//   ^ - entity.name.type.tabletest.probe.header
+//        ^ punctuation.separator.pipe.tabletest
   })
   void testStringArrayImplicitValue() {}
 }
@@ -163,15 +156,15 @@ class StringArrayImplicitValue {
 class StringArrayNamedValue {
   @TableTest(value = {
     "left|right",
-//   ^ markup.heading.tabletest
+//   ^ entity.name.type.tabletest.probe.header
 //   ^ meta.tabletest.header
-//       ^ keyword.operator.tabletest.pipe
+//       ^ punctuation.separator.pipe.tabletest
     "[x: [1,2]]|ok"
 //   ^ meta.tabletest.row
-//   ^ - markup.heading.tabletest
+//   ^ - entity.name.type.tabletest.probe.header
 //   ^ meta.tabletest.map
 //       ^ meta.tabletest.list
-//             ^ keyword.operator.tabletest.pipe
+//             ^ punctuation.separator.pipe.tabletest
     "[1, 2]|{x, y}|[k: v]"
 //   ^ meta.tabletest.row
 //   ^ meta.tabletest.list
@@ -185,37 +178,34 @@ class StringArrayNamedValue {
     "[\"[a]\": 1]|ok"
 //   ^ meta.tabletest.row
 //   ^ meta.tabletest.map
-//       ^ support.type.property-name.tabletest
+//       ^ keyword.control.tabletest
     "     [\"[a]\": 1, '{b}': 2, \"(c)\": 3]|ok"
 //   ^ meta.tabletest.row
-//            ^ string.quoted.double.tabletest
-//            ^ support.type.property-name.tabletest
-//                       ^ string.quoted.single.tabletest
-//                       ^ support.type.property-name.tabletest
-//                                  ^ string.quoted.double.tabletest
-//                                  ^ support.type.property-name.tabletest
+//            ^ keyword.control.tabletest
+//                       ^ keyword.control.tabletest
+//                                  ^ keyword.control.tabletest
   }, name = "x")
   void testStringArrayNamedValue() {}
 }
 
 class NonTableArrayAnnotation {
   @Other({"a|b"})
-//          ^ - keyword.operator.tabletest.pipe
+//          ^ - punctuation.separator.pipe.tabletest
   void testNonTableArrayAnnotation() {}
 }
 
 class SimilarAnnotationName {
   @TableTestX({"a|b"})
-//               ^ - keyword.operator.tabletest.pipe
+//               ^ - punctuation.separator.pipe.tabletest
   void testSimilarAnnotationName() {}
 }
 
 class FullyQualifiedTableTestAnnotation {
   @org.tabletest.junit.TableTest({
     "col1|col2",
-//   ^ markup.heading.tabletest
+//   ^ entity.name.type.tabletest.probe.header
 //   ^ meta.tabletest.header
-//       ^ keyword.operator.tabletest.pipe
+//       ^ punctuation.separator.pipe.tabletest
     "[1, 2]|{x, y}|[k: v]"
 //   ^ meta.tabletest.row
 //   ^ meta.tabletest.list
@@ -228,14 +218,14 @@ class FullyQualifiedTableTestAnnotation {
 class StringArrayEscapedContent {
   @TableTest({
     "scenario|scalar|list|map",
-//   ^ markup.heading.tabletest
+//   ^ entity.name.type.tabletest.probe.header
     "  // middle comment after header",
 //     ^ comment.line.double-slash.tabletest
     "quoted|\"x\"|[a, \"A,B\"]|[\"(s)u[c]c{e}ss\": false]"
 //   ^ meta.tabletest.row
-//          ^ string.quoted.double.tabletest
-//                    ^ string.quoted.double.tabletest
-//                              ^ string.quoted.double.tabletest
+//          ^ constant.numeric.tabletest.quote
+//                    ^ constant.numeric.tabletest.quote
+//                              ^ constant.numeric.tabletest.quote
   })
   void testStringArrayEscapedContent() {}
 //^ - string.unquoted.tabletest
