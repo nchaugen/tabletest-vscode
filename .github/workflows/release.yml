@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   package:
@@ -12,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -31,17 +38,27 @@ jobs:
             exit 1
           fi
 
-      - name: Run test suite
-        run: npm test
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run strict integration tests
+        run: xvfb-run -a npm run test:integration:strict
+
+      - name: Extract curated release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node ./scripts/extract-release-notes.cjs "$VERSION" > RELEASE_NOTES.md
 
       - name: Build VSIX
         run: npm run package
 
-      - name: Upload VSIX artifact
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: vsix
-          path: "*.vsix"
+          name: release-assets
+          path: |
+            *.vsix
+            RELEASE_NOTES.md
           if-no-files-found: error
 
   github-release:
@@ -49,23 +66,25 @@ jobs:
     needs: package
     permissions:
       contents: write
+    environment: release
 
     steps:
-      - name: Download VSIX artifact
+      - name: Download release artifacts
         uses: actions/download-artifact@v8
         with:
-          name: vsix
+          name: release-assets
           path: release-assets
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: release-assets/*.vsix
-          generate_release_notes: true
+          body_path: release-assets/RELEASE_NOTES.md
 
   publish-marketplace:
     runs-on: ubuntu-latest
     needs: package
+    environment: release
 
     steps:
       - name: Check Marketplace token
@@ -80,37 +99,29 @@ jobs:
             echo "VSCE_PAT is not set. Skipping Marketplace publish."
           fi
 
-      - name: Checkout
-        if: ${{ steps.check_token.outputs.publish == 'true' }}
-        uses: actions/checkout@v6
-
       - name: Setup Node
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         uses: actions/setup-node@v6
         with:
           node-version: "20"
-          cache: npm
 
-      - name: Install dependencies
-        if: ${{ steps.check_token.outputs.publish == 'true' }}
-        run: npm ci
-
-      - name: Download VSIX artifact
+      - name: Download release artifacts
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         uses: actions/download-artifact@v8
         with:
-          name: vsix
+          name: release-assets
           path: release-assets
 
       - name: Publish to Visual Studio Marketplace
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: npx @vscode/vsce publish --packagePath release-assets/*.vsix -p "$VSCE_PAT"
+        run: npx --yes @vscode/vsce publish --packagePath release-assets/*.vsix -p "$VSCE_PAT"
 
   publish-open-vsx:
     runs-on: ubuntu-latest
     needs: package
+    environment: release
 
     steps:
       - name: Check Open VSX token
@@ -125,30 +136,21 @@ jobs:
             echo "OVSX_PAT is not set. Skipping Open VSX publish."
           fi
 
-      - name: Checkout
-        if: ${{ steps.check_token.outputs.publish == 'true' }}
-        uses: actions/checkout@v6
-
       - name: Setup Node
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         uses: actions/setup-node@v6
         with:
           node-version: "20"
-          cache: npm
 
-      - name: Install dependencies
-        if: ${{ steps.check_token.outputs.publish == 'true' }}
-        run: npm ci
-
-      - name: Download VSIX artifact
+      - name: Download release artifacts
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         uses: actions/download-artifact@v8
         with:
-          name: vsix
+          name: release-assets
           path: release-assets
 
       - name: Publish to Open VSX
         if: ${{ steps.check_token.outputs.publish == 'true' }}
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: npx ovsx publish release-assets/*.vsix -p "$OVSX_PAT"
+        run: npx --yes ovsx publish release-assets/*.vsix -p "$OVSX_PAT"

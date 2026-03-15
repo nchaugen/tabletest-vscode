@@ -1,0 +1,68 @@
+name: Tag Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: tag-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Resolve release version
+        id: release
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "create=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG already exists."
+            exit 0
+          fi
+
+          if ! grep -q "^## \[$VERSION\] - " CHANGELOG.md; then
+            echo "create=false" >> "$GITHUB_OUTPUT"
+            echo "No release section found for $VERSION in CHANGELOG.md."
+            exit 0
+          fi
+
+          echo "create=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        if: ${{ steps.release.outputs.create == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+
+      - name: Dispatch release workflow
+        if: ${{ steps.release.outputs.create == 'true' }}
+        run: gh workflow run release.yml --ref "${TAG}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}

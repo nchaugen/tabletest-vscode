@@ -148,6 +148,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "package": "vsce package",
+    "release:prepare": "node ./scripts/prepare-release.cjs",
+    "release:notes": "node ./scripts/extract-release-notes.cjs",
     "test": "npm run test:unit",
     "test:unit": "npm run test:formatter && npm run test:grammar",
     "test:formatter": "tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
