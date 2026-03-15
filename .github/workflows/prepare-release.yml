@@ -73,8 +73,8 @@ jobs:
         with:
           branch: release/v${{ inputs.version }}
           base: main
-          commit-message: chore: prepare v${{ inputs.version }}
-          title: Prepare release v${{ inputs.version }}
+          commit-message: "chore: prepare v${{ inputs.version }}"
+          title: "Prepare release v${{ inputs.version }}"
           body: |
             Prepare release `v${{ inputs.version }}`.
 

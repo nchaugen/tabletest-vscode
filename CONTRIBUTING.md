@@ -41,7 +41,7 @@ Integration tests launch a VS Code host. The runner attempts to install the Kotl
 ## Release workflow
 
 Release automation is configured in `.github/workflows/release.yml` and triggers on tags matching `v*.*.*`.
-Release preparation automation lives in `.github/workflows/prepare-release.yml`, and automatic tagging from `main` lives in `.github/workflows/tag-release.yml`.
+Release preparation automation lives in `.github/workflows/prepare-release.yml`, and automatic tagging for merged release PRs lives in `.github/workflows/tag-release.yml`.
 
 ### Required secrets
 
@@ -55,7 +55,8 @@ Set these in GitHub repository settings:
    - The workflow updates `package.json`, `package-lock.json`, and `CHANGELOG.md`, then opens a PR from `release/v0.0.7`.
    - For a local dry run, use `npm run release:prepare -- 0.0.7`.
 2. Review and merge the release PR into `main`.
-3. The `Tag Release` workflow automatically creates the matching `v*.*.*` tag after the release PR lands on `main` and dispatches the `Release` workflow for that tag.
+3. The `Tag Release` workflow automatically creates the matching `v*.*.*` tag after a `release/v*` PR is merged into `main`, then dispatches the `Release` workflow for that tag.
+   - It does not run for ordinary trunk-based commits to `main`.
 4. The release workflow then:
    - validates tag/version match
    - runs `npm run test:unit`
