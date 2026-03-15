@@ -19,6 +19,14 @@ function applyEdits(text: string, edits: TableEdit[]): string {
     .reduce((current, edit) => current.slice(0, edit.start) + edit.formatted + current.slice(edit.end), text);
 }
 
+function allPipeIndices(text: string): number[] {
+  const indices: number[] = [];
+  for (let index = text.indexOf("|"); index >= 0; index = text.indexOf("|", index + 1)) {
+    indices.push(index);
+  }
+  return indices;
+}
+
 test("returns all table edits when no range is provided", () => {
   const text = [
     "@TableTest(\"\"\"",
@@ -262,7 +270,7 @@ test("formats Java string-array rows that contain escaped double quotes in colle
   const updated = applyEdits(text, edits);
   const expected = [
     "@TableTest({",
-    "  \"a        | b   \",",
+    "  \"a          | b \",",
     "  \"[k: \\\"v\\\"] | ok\"",
     "})"
   ].join("\n");
@@ -286,4 +294,40 @@ test("keeps Java string-array closing quotes aligned when map keys use escaped d
   assert.ok(typeof firstClosingQuoteIndex === "number" && firstClosingQuoteIndex >= 0);
   assert.ok(literalLines.every((line) => line.lastIndexOf("\"") === firstClosingQuoteIndex));
   assert.ok(updated.includes("\"Map with quoted keys | [':l e[f]t': [1, 2], \\\" :r:i[g]h t\\\": [3, 4]]"));
+});
+
+test("aligns Java string-array columns after escaping quoted scalar values and backslashes", () => {
+  const text = [
+    "@TableTest({",
+    "  \"Scenario|Scalar value|Collection literal|Map literal\",",
+    "  \"double quoted comma|\\\"Hello, world\\\"|[1,2,3]|[plain: other]\",",
+    "  \"quoted whitespace|\\\"  padded  \\\"|[[1,2],[3,4]]|[\\\"key:colon\\\": [left: [1,2], right: {3,4}]]\",",
+    "  \"escaped quotes and slash|\\\"Say \\\\\\\"hi\\\\\\\"\\\"|[path\\\\\\\\file, \\\"A,B\\\"]|[\\\"(s)u[c]c{e}ss\\\": false]\"",
+    "})"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  const literalLines = updated
+    .split("\n")
+    .filter((line) =>
+      line.includes("double quoted comma") ||
+      line.includes("quoted whitespace") ||
+      line.includes("escaped quotes and slash")
+    );
+
+  assert.strictEqual(literalLines.length, 3);
+  assert.deepStrictEqual(
+    literalLines.map((line) => allPipeIndices(line)),
+    [
+      allPipeIndices(literalLines[0] ?? ""),
+      allPipeIndices(literalLines[0] ?? ""),
+      allPipeIndices(literalLines[0] ?? "")
+    ]
+  );
+  assert.ok(updated.includes("\"double quoted comma      | \\\"Hello, world\\\""));
+  assert.ok(updated.includes("\"quoted whitespace        | \\\"  padded  \\\""));
+  assert.ok(updated.includes("\"escaped quotes and slash | \\\"Say \\\\\\\"hi\\\\\\\"\\\""));
 });

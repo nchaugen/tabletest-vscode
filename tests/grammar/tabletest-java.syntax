@@ -224,3 +224,19 @@ class FullyQualifiedTableTestAnnotation {
   })
   void testFullyQualifiedTableTestAnnotation() {}
 }
+
+class StringArrayEscapedContent {
+  @TableTest({
+    "scenario|scalar|list|map",
+//   ^ markup.heading.tabletest
+    "  // middle comment after header",
+//     ^ comment.line.double-slash.tabletest
+    "quoted|\"x\"|[a, \"A,B\"]|[\"(s)u[c]c{e}ss\": false]"
+//   ^ meta.tabletest.row
+//          ^ string.quoted.double.tabletest
+//                    ^ string.quoted.double.tabletest
+//                              ^ string.quoted.double.tabletest
+  })
+  void testStringArrayEscapedContent() {}
+//^ - string.unquoted.tabletest
+}

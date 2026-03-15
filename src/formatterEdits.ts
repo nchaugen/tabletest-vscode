@@ -1,4 +1,4 @@
-import { displayWidth, extractAnnotationTables } from "./parser";
+import { displayWidth, extractAnnotationTables, findTableIssues, splitRowWithSpans } from "./parser";
 import type { AnnotationHostLanguage } from "./parser";
 import type { ExtractedTableStringArray } from "./parser";
 
@@ -39,8 +39,8 @@ export function calculateTableEdits(
       return [{ start: table.start, end: table.end, formatted }];
     }
 
-    const formattedArray = formatStringArrayTable(table, formatTable, arrayExtraIndent, tabSize);
     const originalArray = text.slice(table.start, table.end);
+    const formattedArray = formatStringArrayTable(table, formatTable, arrayExtraIndent, tabSize, originalArray);
     if (formattedArray === originalArray) return [];
     return [{ start: table.start, end: table.end, formatted: formattedArray }];
   });
@@ -94,20 +94,26 @@ function formatStringArrayTable(
   table: ExtractedTableStringArray,
   formatTable: FormatTable,
   extraIndent: string,
-  tabSize: number
+  tabSize: number,
+  originalArray: string
 ): string {
   const sourceRows = table.rows.map((row) => row.decodedContent);
   const sourceTable = sourceRows.join("\n");
+  const dataRows = sourceRows.filter((row) => row.trim() !== "" && !row.trimStart().startsWith("//"));
+  const hasPipe = dataRows.some((row) => splitRowWithSpans(row).length > 1);
+  if (!hasPipe || findTableIssues(sourceTable).length > 0) {
+    return originalArray;
+  }
+
   const formattedTable = formatTable(sourceTable, "");
-  const formattedRows = formattedTable.split("\n");
+  const formattedRows = toEscapedJavaStringArrayRows(formattedTable, tabSize);
   if (formattedRows.length === 0) {
     return "{}";
   }
 
-  const escapedRowLiterals = formattedRows.map((row) => escapeJavaStringLiteral(row));
-  const maxRowWidth = Math.max(...escapedRowLiterals.map((row) => displayWidth(row, tabSize)));
+  const maxRowWidth = Math.max(...formattedRows.map((row) => displayWidth(row, tabSize)));
   const rowIndent = table.indent + extraIndent;
-  const rowLines = escapedRowLiterals.map((escapedRow, rowIndex) => {
+  const rowLines = formattedRows.map((escapedRow, rowIndex) => {
     const rowWidth = displayWidth(escapedRow, tabSize);
     const trailingSpaces = " ".repeat(Math.max(maxRowWidth - rowWidth, 0));
     const literal = escapedRow + trailingSpaces;
@@ -116,6 +122,58 @@ function formatStringArrayTable(
   });
 
   return ["{", ...rowLines, `${table.indent}}`].join("\n");
+}
+
+type EscapedArrayLine = {
+  kind: "raw";
+  text: string;
+} | {
+  kind: "data";
+  cells: string[];
+};
+
+function toEscapedJavaStringArrayRows(formattedTable: string, tabSize: number): string[] {
+  const lines = formattedTable.split("\n");
+  const lineInfos: EscapedArrayLine[] = lines.map((line) => {
+    if (line.trim() === "" || line.trimStart().startsWith("//")) {
+      return { kind: "raw", text: escapeJavaStringLiteral(line) };
+    }
+
+    return {
+      kind: "data",
+      cells: splitRowWithSpans(line).map((cell) => escapeJavaStringLiteral(cell.text.trim()))
+    };
+  });
+
+  const dataLines = lineInfos.flatMap((lineInfo) => (lineInfo.kind === "data" ? [lineInfo.cells] : []));
+  const widths = calculateEscapedColumnWidths(dataLines, tabSize);
+
+  return lineInfos.map((lineInfo) => {
+    if (lineInfo.kind === "raw") {
+      return lineInfo.text;
+    }
+
+    const formattedLine = lineInfo.cells.map((cell, columnIndex) => {
+      const width = widths[columnIndex] ?? 0;
+      const padding = Math.max(width - displayWidth(cell, tabSize), 0);
+      return cell + " ".repeat(padding);
+    }).join(" | ");
+
+    return formattedLine;
+  });
+}
+
+function calculateEscapedColumnWidths(rows: string[][], tabSize: number): number[] {
+  const columnCount = rows.reduce((max, row) => Math.max(max, row.length), 0);
+  const widths = new Array<number>(columnCount).fill(0);
+
+  for (const row of rows) {
+    row.forEach((cell, columnIndex) => {
+      widths[columnIndex] = Math.max(widths[columnIndex] ?? 0, displayWidth(cell, tabSize));
+    });
+  }
+
+  return widths;
 }
 
 function escapeJavaStringLiteral(value: string): string {

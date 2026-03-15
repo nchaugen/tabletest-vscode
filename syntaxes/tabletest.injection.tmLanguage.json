@@ -141,7 +141,7 @@
     },
     "tabletestArrayHeaderAndRemainingRows": {
       "begin": "^(?=\\s*\\\")",
-      "end": "(?=\\})",
+      "end": "(?=\\s*\\})",
       "patterns": [
         { "include": "#tabletestArrayHeaderStringAtStateStart" },
         { "include": "#tabletestArrayRemainingRows" }
@@ -209,7 +209,7 @@
           "name": "punctuation.separator.comma.tabletest"
         }
       },
-      "end": "(?=\\})",
+      "end": "(?=\\s*\\})",
       "patterns": [
         { "include": "#tabletestArrayRowString" },
         { "name": "punctuation.separator.comma.tabletest", "match": "," }
@@ -217,7 +217,8 @@
     },
     "tableHeaderInArray": {
       "patterns": [
-        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*(?=(?<!\\\\)\\\")" },
+        { "include": "#stringDoubleEscapedForArray" },
         { "include": "#stringDouble" },
         { "include": "#stringSingle" },
         { "match": "\\s+" },
@@ -230,7 +231,8 @@
     },
     "tableRowInArray": {
       "patterns": [
-        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*(?=(?<!\\\\)\\\")" },
+        { "include": "#stringDoubleEscapedForArray" },
         { "include": "#stringDouble" },
         { "include": "#stringSingle" },
         { "match": "\\s+" },
@@ -332,6 +334,27 @@
         { "name": "entity.name.column.tabletest", "match": "(?:(?!(?<!\\\\)\\\"\\\"\\\")[^|\\r\\n])+" }
       ]
     },
+    "stringDoubleEscapedForArray": {
+      "name": "string.quoted.double.tabletest",
+      "begin": "(?<!\\\\)\\\\\\\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)\\\\\\\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.tabletest",
+          "match": "\\\\."
+        }
+      ]
+    },
     "stringDouble": {
       "name": "string.quoted.double.tabletest",
       "match": "\\\"[^\\\"\\r\\n]*\\\""
@@ -363,7 +386,7 @@
           "match": "\\s+"
         },
         {
-          "include": "#quotedMapKey"
+          "include": "#stringDoubleEscapedForArray"
         },
         {
           "include": "#mapLiteral"
@@ -373,6 +396,9 @@
         },
         {
           "include": "#setLiteral"
+        },
+        {
+          "include": "#stringDoubleEscapedForArray"
         },
         {
           "include": "#stringDouble"
@@ -416,6 +442,9 @@
         },
         {
           "include": "#setLiteral"
+        },
+        {
+          "include": "#stringDoubleEscapedForArray"
         },
         {
           "include": "#stringDouble"
@@ -471,6 +500,9 @@
           "match": ":"
         },
         {
+          "include": "#stringDoubleEscapedForArray"
+        },
+        {
           "include": "#stringDouble"
         },
         {
@@ -498,7 +530,7 @@
           "name": "punctuation.definition.string.begin.tabletest"
         }
       },
-      "end": "\\\\\\\"(?=\\s*:)",
+      "end": "(?<!\\\\)\\\\\\\"(?=\\s*:)",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.tabletest"
