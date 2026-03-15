@@ -356,7 +356,7 @@ suite("TableTest formatter integration", () => {
       "Scenario       | Value           | Result?",
       "ascii          | plain text      | ok",
       "hiragana       | こんにちは      | ok",
-      "emoji simple   | 😀😀😀         | ok",
+      "emoji simple   | 😀😀😀          | ok",
       "quoted unicode | \"こんにちは 😀\" | ok"
     ].join("\n");
 
