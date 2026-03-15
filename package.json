@@ -61,7 +61,8 @@
         ],
         "extensions": [
           ".table"
-        ]
+        ],
+        "configuration": "./language-configuration.tabletest.json"
       }
     ],
     "commands": [
@@ -96,6 +97,11 @@
         "id": "tableHeader",
         "description": "TableTest header cells",
         "superType": "type"
+      },
+      {
+        "id": "tableQuestionHeader",
+        "description": "TableTest header cells ending with ?",
+        "superType": "property"
       }
     ],
     "semanticTokenScopes": [
@@ -103,8 +109,11 @@
         "language": "tabletest",
         "scopes": {
           "tableHeader": [
-            "markup.heading.tabletest",
+            "entity.name.type.tabletest.probe.header",
             "entity.name.column.tabletest"
+          ],
+          "tableQuestionHeader": [
+            "markup.inserted.tabletest.probe.question-header"
           ]
         }
       },
@@ -112,8 +121,11 @@
         "language": "java",
         "scopes": {
           "tableHeader": [
-            "markup.heading.tabletest",
+            "entity.name.type.tabletest.probe.header",
             "entity.name.column.tabletest"
+          ],
+          "tableQuestionHeader": [
+            "markup.inserted.tabletest.probe.question-header"
           ]
         }
       },
@@ -121,8 +133,11 @@
         "language": "kotlin",
         "scopes": {
           "tableHeader": [
-            "markup.heading.tabletest",
+            "entity.name.type.tabletest.probe.header",
             "entity.name.column.tabletest"
+          ],
+          "tableQuestionHeader": [
+            "markup.inserted.tabletest.probe.question-header"
           ]
         }
       }

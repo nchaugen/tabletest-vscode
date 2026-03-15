@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { TableTestFormatter } from "./formatter";
+import { registerTableHeaderDecorations } from "./tableHeaderDecorations";
 import { TableHeaderSemanticTokensProvider, tableHeaderSemanticLegend } from "./tableHeaderSemanticTokens";
 import { registerTableDiagnostics } from "./tableDiagnostics";
 
@@ -12,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const semanticTokensProvider = new TableHeaderSemanticTokensProvider();
 	const supportedLanguages = new Set(["java", "kotlin", "tabletest"]);
 	registerTableDiagnostics(context);
+	registerTableHeaderDecorations(context);
 
 	context.subscriptions.push(
 		vscode.languages.registerDocumentSemanticTokensProvider(

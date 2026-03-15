@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { collectTableHeaderTokenSpans } from "./tableHeaderTokens";
 
-const tokenTypes = ["tableHeader"] as const;
+const tokenTypes = ["tableHeader", "tableQuestionHeader"] as const;
 export const tableHeaderSemanticLegend = new vscode.SemanticTokensLegend([...tokenTypes], []);
 
 export class TableHeaderSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
@@ -19,7 +19,7 @@ export class TableHeaderSemanticTokensProvider implements vscode.DocumentSemanti
         continue;
       }
 
-      builder.push(start.line, start.character, end.character - start.character, tokenTypes.indexOf("tableHeader"), 0);
+      builder.push(start.line, start.character, end.character - start.character, tokenTypes.indexOf(span.tokenType), 0);
     }
 
     return builder.build();

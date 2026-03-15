@@ -16,12 +16,18 @@ export type AbsoluteSpan = {
   end: number;
 };
 
+export type TableHeaderTokenType = "tableHeader" | "tableQuestionHeader";
+
+export type HeaderTokenSpan = AbsoluteSpan & {
+  tokenType: TableHeaderTokenType;
+};
+
 type LineWithOffset = {
   text: string;
   startOffset: number;
 };
 
-export function collectTableHeaderTokenSpans(text: string, languageId: SupportedLanguage): AbsoluteSpan[] {
+export function collectTableHeaderTokenSpans(text: string, languageId: SupportedLanguage): HeaderTokenSpan[] {
   if (languageId === "tabletest") {
     return headerTokenSpansForTableText(text, 0);
   }
@@ -30,40 +36,41 @@ export function collectTableHeaderTokenSpans(text: string, languageId: Supported
   return extractAnnotationTables(text, language).flatMap((table) => headerTokenSpansForAnnotationTable(table));
 }
 
-function headerTokenSpansForAnnotationTable(table: ExtractedAnnotationTable): AbsoluteSpan[] {
+function headerTokenSpansForAnnotationTable(table: ExtractedAnnotationTable): HeaderTokenSpan[] {
   if (table.kind === "textBlock") {
     return headerTokenSpansForTableText(table.content, table.start);
   }
   return headerTokenSpansForStringArray(table.rows);
 }
 
-function headerTokenSpansForTableText(tableText: string, baseOffset: number): AbsoluteSpan[] {
+function headerTokenSpansForTableText(tableText: string, baseOffset: number): HeaderTokenSpan[] {
   const lines = linesWithOffsets(tableText);
   const headerLine = firstHeaderLine(lines);
   if (!headerLine) {
     return [];
   }
 
-  return cellValueSpans(headerLine.text)
+  return headerCellSpans(headerLine.text)
     .map((span) => ({
       start: baseOffset + headerLine.startOffset + span.start,
-      end: baseOffset + headerLine.startOffset + span.end
+      end: baseOffset + headerLine.startOffset + span.end,
+      tokenType: span.tokenType
     }));
 }
 
-function headerTokenSpansForStringArray(rows: ExtractedTableStringArrayRow[]): AbsoluteSpan[] {
+function headerTokenSpansForStringArray(rows: ExtractedTableStringArrayRow[]): HeaderTokenSpan[] {
   const headerRow = rows.find((row) => isHeaderCandidate(row.decodedContent));
   if (!headerRow) {
     return [];
   }
 
-  return cellValueSpans(headerRow.decodedContent).flatMap((span) => {
+  return headerCellSpans(headerRow.decodedContent).flatMap((span) => {
     const start = headerRow.decodedContentSourceOffsets[span.start];
     const end = headerRow.decodedContentSourceOffsets[span.end];
     if (start === undefined || end === undefined || start >= end) {
       return [];
     }
-    return [{ start, end }];
+    return [{ start, end, tokenType: span.tokenType }];
   });
 }
 
@@ -100,13 +107,16 @@ function isHeaderCandidate(line: string): boolean {
   return splitRowWithSpans(line).length > 1;
 }
 
-function cellValueSpans(line: string): AbsoluteSpan[] {
+function headerCellSpans(line: string): HeaderTokenSpan[] {
   return splitRowWithSpans(line).flatMap((cell) => {
     const span = trimmedCellSpan(cell);
     if (span === null) {
       return [];
     }
-    return [span];
+    return [{
+      ...span,
+      tokenType: cell.text.trimEnd().endsWith("?") ? "tableQuestionHeader" : "tableHeader"
+    }];
   });
 }
 
