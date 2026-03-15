@@ -152,7 +152,7 @@ test("passes indent into the formatter", () => {
   assert.strictEqual(edits[0]?.formatted, "indent:4");
 });
 
-test("adds configured extra indent to extracted table indent", () => {
+test("does not add extra indent when a Java text block starts on its own line", () => {
   const text = [
     "  @TableTest(",
     "    \"\"\"",
@@ -163,7 +163,33 @@ test("adds configured extra indent to extracted table indent", () => {
 
   const edits = calculateTableEdits(text, (_content, indent) => `indent:${indent.length}`, undefined, "java", "  ");
   assert.strictEqual(edits.length, 1);
-  assert.strictEqual(edits[0]?.formatted, "indent:6");
+  assert.strictEqual(edits[0]?.formatted, "indent:4");
+});
+
+test("does not add extra indent when a Java implicit value has a comment before the text block", () => {
+  const text = [
+    "  @TableTest(",
+    "    // comment before implicit value",
+    "    \"\"\"",
+    "    a|b",
+    "    \"\"\"",
+    "  )"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (_content, indent) => `indent:${indent.length}`, undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+  assert.strictEqual(edits[0]?.formatted, "indent:4");
+});
+
+test("adds configured extra indent to inline Java text blocks", () => {
+  const text = [
+    "  @TableTest(\"\"\"a|b",
+    "  1|2\"\"\")"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (_content, indent) => `indent:${indent.length}`, undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+  assert.strictEqual(edits[0]?.formatted, "indent:4");
 });
 
 test("supports Kotlin-specific triple-quote termination when extracting tables", () => {

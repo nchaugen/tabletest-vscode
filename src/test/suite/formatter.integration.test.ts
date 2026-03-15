@@ -159,6 +159,31 @@ suite("TableTest formatter integration", () => {
     assert.strictEqual(actual, expected);
   });
 
+  test("does not add extra indent when a Java implicit value comment precedes a text block", async () => {
+    const input = [
+      "@TableTest(",
+      "    // comment before implicit value",
+      "    \"\"\"",
+      "    a|b",
+      "    1|22",
+      "    \"\"\"",
+      ")"
+    ].join("\n");
+
+    const expected = [
+      "@TableTest(",
+      "    // comment before implicit value",
+      "    \"\"\"",
+      "    a | b",
+      "    1 | 22",
+      "    \"\"\"",
+      ")"
+    ].join("\n");
+
+    const actual = await formatDocument("java", input);
+    assert.strictEqual(actual, expected);
+  });
+
   test("formats a Java implicit string-array table", async () => {
     const input = "@TableTest({\"name|age\",\"Alice|30\",\"Bob|7\"})";
 

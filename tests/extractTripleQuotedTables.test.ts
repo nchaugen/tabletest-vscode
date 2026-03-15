@@ -28,6 +28,7 @@ test("extracts implicit value table content and positions", () => {
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
   assert.strictEqual(first.indent, "    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, true);
 
   const expectedStart = nthIndexOf(text, "\"\"\"", 1) + 3;
   const expectedEnd = nthIndexOf(text, "\"\"\"", 2);
@@ -52,6 +53,7 @@ test("extracts fully-qualified Java annotation value tables", () => {
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, true);
 });
 
 test("extracts named value table and ignores non-value arguments", () => {
@@ -73,6 +75,7 @@ test("extracts named value table and ignores non-value arguments", () => {
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
   assert.strictEqual(first.indent, "    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("prefers named value when another triple-quoted argument appears first", () => {
@@ -92,6 +95,7 @@ test("prefers named value when another triple-quoted argument appears first", ()
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("supports line comments before implicit value table", () => {
@@ -111,6 +115,7 @@ test("supports line comments before implicit value table", () => {
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, true);
 });
 
 test("handles valid Java annotation argument forms around value", () => {
@@ -134,6 +139,7 @@ test("handles valid Java annotation argument forms around value", () => {
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\n    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("handles valid Kotlin annotation argument forms around value", () => {
@@ -156,6 +162,7 @@ test("handles valid Kotlin annotation argument forms around value", () => {
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    x|y\n    3|4\n    ");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("treats escaped triple quote as content in Java text blocks", () => {
@@ -176,6 +183,7 @@ test("treats escaped triple quote as content in Java text blocks", () => {
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, `\n    a|b\n    1|2${escapedTerminator}|3\n    4|5\n    `);
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("treats backslash triple quote as terminator in Kotlin raw strings", () => {
@@ -194,6 +202,7 @@ test("treats backslash triple quote as terminator in Kotlin raw strings", () => 
   const first = tables[0];
   assert.ok(first);
   assert.strictEqual(first.content, "\n    a|b\n    1|2\\");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
 });
 
 test("does not use implicit triple-quoted value when named arguments are present", () => {
@@ -248,4 +257,6 @@ test("extracts multiple TableTest annotations and ignores other annotations", ()
   assert.ok(second);
   assert.strictEqual(first.content, "\na|b\n1|2\n");
   assert.strictEqual(second.content, "\nx|y\n3|4\n");
+  assert.strictEqual(first.openingQuoteOnOwnLine, false);
+  assert.strictEqual(second.openingQuoteOnOwnLine, false);
 });

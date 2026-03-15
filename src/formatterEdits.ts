@@ -1,5 +1,6 @@
 import { displayWidth, extractAnnotationTables, findTableIssues, splitRowWithSpans } from "./parser";
 import type { AnnotationHostLanguage } from "./parser";
+import type { ExtractedTableTextBlock } from "./parser";
 import type { ExtractedTableStringArray } from "./parser";
 
 export type OffsetRange = {
@@ -34,7 +35,7 @@ export function calculateTableEdits(
     }
 
     if (table.kind === "textBlock") {
-      const formatted = formatTable(table.content, table.indent + extraIndent);
+      const formatted = formatTable(table.content, resolveTextBlockIndent(table, language, extraIndent));
       if (formatted === table.content) return [];
       return [{ start: table.start, end: table.end, formatted }];
     }
@@ -44,6 +45,18 @@ export function calculateTableEdits(
     if (formattedArray === originalArray) return [];
     return [{ start: table.start, end: table.end, formatted: formattedArray }];
   });
+}
+
+function resolveTextBlockIndent(table: ExtractedTableTextBlock, language: AnnotationHostLanguage, extraIndent: string): string {
+  if (language !== "java") {
+    return table.indent + extraIndent;
+  }
+
+  if (table.openingQuoteOnOwnLine) {
+    return table.indent;
+  }
+
+  return table.indent + extraIndent;
 }
 
 export type Position = {

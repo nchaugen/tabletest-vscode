@@ -780,6 +780,7 @@ type ExtractedTripleQuotedTable = {
   end: number;
   content: string;
   indent: string;
+  openingQuoteOnOwnLine: boolean;
 };
 
 export type ExtractedTableTextBlock = {
@@ -788,6 +789,7 @@ export type ExtractedTableTextBlock = {
   end: number;
   content: string;
   indent: string;
+  openingQuoteOnOwnLine: boolean;
 };
 
 export type ExtractedTableStringArrayRow = {
@@ -886,7 +888,13 @@ export function extractTripleQuotedTables(
     if (table.kind !== "textBlock") {
       return [];
     }
-    return [{ start: table.start, end: table.end, content: table.content, indent: table.indent }];
+    return [{
+      start: table.start,
+      end: table.end,
+      content: table.content,
+      indent: table.indent,
+      openingQuoteOnOwnLine: table.openingQuoteOnOwnLine
+    }];
   });
 }
 
@@ -969,8 +977,10 @@ function parseTripleQuotedValue(
   const contentStart = quoteStart + tripleQuote.length;
   const content = text.slice(contentStart, quoteEnd);
   const lineStart = text.lastIndexOf("\n", quoteStart) + 1;
-  const indent = text.slice(lineStart, quoteStart).match(/^\s*/)?.[0] ?? "";
-  return { kind: "textBlock", start: contentStart, end: quoteEnd, content, indent };
+  const textBeforeQuote = text.slice(lineStart, quoteStart);
+  const indent = textBeforeQuote.match(/^\s*/)?.[0] ?? "";
+  const openingQuoteOnOwnLine = textBeforeQuote.trim() === "";
+  return { kind: "textBlock", start: contentStart, end: quoteEnd, content, indent, openingQuoteOnOwnLine };
 }
 
 function parseStaticStringArrayValue(
