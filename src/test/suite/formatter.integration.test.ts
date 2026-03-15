@@ -343,6 +343,27 @@ suite("TableTest formatter integration", () => {
     assert.strictEqual(document.getText(), input);
   });
 
+  test("formats standalone table files with padding for wide unicode graphemes", async () => {
+    const input = [
+      "Scenario|Value|Result?",
+      "ascii|plain text|ok",
+      "hiragana|こんにちは|ok",
+      "emoji simple|😀😀😀|ok",
+      "quoted unicode|\"こんにちは 😀\"|ok"
+    ].join("\n");
+
+    const expected = [
+      "Scenario       | Value           | Result?",
+      "ascii          | plain text      | ok",
+      "hiragana       | こんにちは      | ok",
+      "emoji simple   | 😀😀😀         | ok",
+      "quoted unicode | \"こんにちは 😀\" | ok"
+    ].join("\n");
+
+    const actual = await formatDocument("tabletest", input);
+    assert.strictEqual(actual, expected);
+  });
+
   test("keeps pipes inside quotes within a cell", async () => {
     const input = [
       "@TableTest(\"\"\"",

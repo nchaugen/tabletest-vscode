@@ -242,6 +242,23 @@ const cases: FormatCase[] = [
     `)
   },
   {
+    name: "unicode standalone table rows pad for wide characters",
+    input: table(`
+      Scenario|Value|Result?
+      ascii|plain text|ok
+      hiragana|こんにちは|ok
+      emoji simple|😀😀😀|ok
+      quoted unicode|"こんにちは 😀"|ok
+    `),
+    expected: table(`
+      Scenario       | Value           | Result?
+      ascii          | plain text      | ok
+      hiragana       | こんにちは      | ok
+      emoji simple   | 😀😀😀          | ok
+      quoted unicode | "こんにちは 😀" | ok
+    `)
+  },
+  {
     name: "tab values align using tab stops",
     input: table(`
       k|v|n
