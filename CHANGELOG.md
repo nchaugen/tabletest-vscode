@@ -10,15 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Formatter and diagnostics support for quoted map keys in map literals (both `"key"` and `'key'`), while preserving key quoting style and normalising map spacing.
-- Diagnostics for invalid unquoted scalar values and invalid unquoted map keys in TableTest cells.
+- Diagnostics for invalid unquoted map keys in TableTest cells.
 - Formatting and diagnostics support for fully-qualified Java `@org.tabletest.junit.TableTest(...)` annotations.
 - Standalone `.table` range formatting support so `Format Selection` works as documented.
+- Distinct syntax highlighting for question-mark header cells, with stronger header emphasis across `.table`, Java, and Kotlin.
 
 ### Changed
 
 - Table parsing and formatting now follow the canonical TableTest parser more closely for quoted-map-key cases and other edge-case bare values.
 - Comment indentation now normalises consistently to the table left edge in standalone files and Java/Kotlin host strings.
 - Local test entrypoints now mirror CI with `npm run test:unit`, `npm run test:integration:strict`, and `npm run test:full`.
+- Syntax highlighting now uses clearer, more consistent theme families for headers, separators, strings, and map keys across `.table`, Java, and Kotlin contexts.
+- Standalone `.table` files now suppress bracket-pair colour rotation for table content.
+
+### Fixed
+
+- Bare unquoted scalar values containing commas or colons no longer trigger diagnostics.
+- Header highlighting now correctly skips leading table comments before the real header row.
+- Quoted map keys no longer miscolour bracket, brace, or parenthesis characters as structural punctuation.
+- Java string-array escaping no longer breaks column alignment or leaks highlighting into surrounding annotation code.
+- Java text blocks with comments before the implicit value no longer pick up extra indentation during formatting.
 
 ## [0.0.6] - 2026-03-08
 

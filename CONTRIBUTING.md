@@ -15,15 +15,20 @@ Press `F5` to start an Extension Development Host.
 npm test
 ```
 
-`npm test` runs:
+`npm test` runs the fast unit gate:
 - formatter tests (`test:formatter`)
 - grammar tests (`test:grammar`)
 
-Additional integration test command:
+Additional commands:
 
 ```bash
-npm run test:integration
+npm run test:integration:strict
+npm run test:full
 ```
+
+- `npm run test:integration` launches the VS Code host with the looser local defaults and may skip in environments where the host cannot start.
+- `npm run test:integration:strict` is the recommended integration command when you want CI-like behaviour locally.
+- `npm run test:full` runs the fast unit gate plus strict integration.
 
 Integration tests launch a VS Code host. The runner attempts to install the Kotlin extension (`fwcd.kotlin`) before executing tests.
 
@@ -43,11 +48,12 @@ Set these in GitHub repository settings:
 
 ### Release steps
 
-1. Bump extension version in `package.json`.
-2. Commit and push to `main`.
-3. Create and push a matching tag:
+1. Update `CHANGELOG.md` and bump the extension version in `package.json`.
+2. Run `npm run test:full`.
+3. Commit and push to `main`.
+4. Create and push a matching tag:
    - if version is `0.0.3`, tag must be `v0.0.3`
-4. The workflow then:
+5. The workflow then:
    - validates tag/version match
    - runs `npm test`
    - builds a `.vsix`

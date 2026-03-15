@@ -16,7 +16,7 @@ This style keeps test data clear, maintainable, and easy to extend.
 ## Features
 
 - Rich syntax highlighting for TableTest tables:
-  - Header cells
+  - Header cells, including distinct styling for expected-value columns ending with `?`
   - `//` table comments
   - Map keys (quoted or unquoted)
   - Nested list/set/map structures
@@ -24,7 +24,6 @@ This style keeps test data clear, maintainable, and easy to extend.
 - Cell value normalisation for lists/sets/maps
 - Support for Java, Kotlin, and standalone `.table` files
 - Warnings for invalid table cell syntax, including:
-  - unquoted scalar values that need quoting (for example `World, hello` or `key: value`)
   - unquoted map keys that need quoting (for example `[key with spaces: value]`)
   - trailing-comma empty elements (for example `[a, b,]`)
   - map entries without values (for example `[key:]`)
@@ -144,7 +143,7 @@ Typical annotation forms:
   - Java static string-array literal (`{"...", "..."}`).
 - For implicit Java string-array formatting, the formatter normalises boundaries to `@TableTest({` ... `})`.
 - Implicit extraction is only used when there is exactly one positional argument and no named arguments.
-- Diagnostics currently focus on syntax problems inside recognisable table cells, including malformed list/set/map values and unquoted values or map keys that require quoting.
+- Diagnostics currently focus on syntax problems inside recognisable table cells, including malformed list/set/map values and unquoted map keys that require quoting.
 
 ## Contributing
 
