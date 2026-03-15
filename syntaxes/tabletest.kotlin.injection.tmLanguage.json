@@ -119,7 +119,7 @@
       "begin": "(^|\\|)\\s*(?!\"\"\")",
       "beginCaptures": {
         "1": {
-          "name": "keyword.operator.tabletest.pipe"
+          "name": "keyword.operator.tabletest.pipe constant.language.tabletest.probe"
         }
       },
       "end": "(?=\\|)|(?=\\\"\\\"\\\")|$",
@@ -130,14 +130,14 @@
         { "include": "#mapLiteral" },
         { "include": "#listLiteral" },
         { "include": "#setLiteral" },
-        { "name": "string.unquoted.tabletest", "match": "(?:(?!\\\"\\\"\\\")[^|\\r\\n])+" }
+        { "name": "string.unquoted.tabletest variable.other.readwrite.tabletest.probe", "match": "(?:(?!\\\"\\\"\\\")[^|\\r\\n])+" }
       ]
     },
     "tableHeaderCell": {
       "begin": "(^|\\|)\\s*(?!\"\"\")",
       "beginCaptures": {
         "1": {
-          "name": "keyword.operator.tabletest.pipe"
+          "name": "keyword.operator.tabletest.pipe constant.language.tabletest.probe"
         }
       },
       "end": "(?=\\|)|(?=\\\"\\\"\\\")|$",
@@ -148,7 +148,7 @@
         { "include": "#mapLiteral" },
         { "include": "#listLiteral" },
         { "include": "#setLiteral" },
-        { "name": "entity.name.column.tabletest", "match": "(?:(?!\\\"\\\"\\\")[^|\\r\\n])+" }
+        { "name": "entity.name.column.tabletest entity.name.type.tabletest.probe", "match": "(?:(?!\\\"\\\"\\\")[^|\\r\\n])+" }
       ]
     },
     "stringDouble": {
@@ -164,18 +164,18 @@
       "begin": "\\[(?!(?:[^\\]\"'\\r\\n]|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*')*:)",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.section.brackets.begin.tabletest"
+          "name": "punctuation.section.brackets.begin.tabletest entity.name.type.tabletest.probe"
         }
       },
       "end": "(?:\\]|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
-          "name": "punctuation.section.brackets.end.tabletest"
+          "name": "punctuation.section.brackets.end.tabletest entity.name.type.tabletest.probe"
         }
       },
       "patterns": [
         {
-          "name": "punctuation.separator.comma.tabletest",
+          "name": "punctuation.separator.comma.tabletest keyword.operator.tabletest.probe",
           "match": ","
         },
         {
@@ -200,7 +200,7 @@
           "include": "#stringSingle"
         },
         {
-          "name": "string.unquoted.tabletest",
+          "name": "string.unquoted.tabletest variable.other.readwrite.tabletest.probe",
           "match": "(?:(?!\\\"\\\"\\\")[^,\\]\\r\\n])+"
         }
       ]
@@ -210,18 +210,18 @@
       "begin": "\\{",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.section.braces.begin.tabletest"
+          "name": "punctuation.section.braces.begin.tabletest entity.name.type.tabletest.probe"
         }
       },
       "end": "(?:\\}|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
-          "name": "punctuation.section.braces.end.tabletest"
+          "name": "punctuation.section.braces.end.tabletest entity.name.type.tabletest.probe"
         }
       },
       "patterns": [
         {
-          "name": "punctuation.separator.comma.tabletest",
+          "name": "punctuation.separator.comma.tabletest keyword.operator.tabletest.probe",
           "match": ","
         },
         {
@@ -243,7 +243,7 @@
           "include": "#stringSingle"
         },
         {
-          "name": "string.unquoted.tabletest",
+          "name": "string.unquoted.tabletest variable.other.readwrite.tabletest.probe",
           "match": "(?:(?!\\\"\\\"\\\")[^,\\}\\r\\n])+"
         }
       ]
@@ -253,18 +253,18 @@
       "begin": "\\[(?=(?:[^\\]\"'\\r\\n]|\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*')*:)",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.section.brackets.begin.tabletest"
+          "name": "punctuation.section.brackets.begin.tabletest entity.name.type.tabletest.probe"
         }
       },
       "end": "(?:\\]|(?=\\\"\\\"\\\"))",
       "endCaptures": {
         "0": {
-          "name": "punctuation.section.brackets.end.tabletest"
+          "name": "punctuation.section.brackets.end.tabletest entity.name.type.tabletest.probe"
         }
       },
       "patterns": [
         {
-          "name": "punctuation.separator.comma.tabletest",
+          "name": "punctuation.separator.comma.tabletest keyword.operator.tabletest.probe",
           "match": ","
         },
         {
@@ -286,7 +286,7 @@
           "include": "#mapKey"
         },
         {
-          "name": "keyword.operator.assignment.tabletest",
+          "name": "keyword.operator.assignment.tabletest keyword.operator.tabletest.probe",
           "match": ":"
         },
         {
@@ -296,7 +296,7 @@
           "include": "#stringSingle"
         },
         {
-          "name": "string.unquoted.tabletest",
+          "name": "string.unquoted.tabletest variable.other.readwrite.tabletest.probe",
           "match": "(?:(?!\\\"\\\"\\\")[^,:\\]\\r\\n])+"
         }
       ]
@@ -309,7 +309,7 @@
     },
     "mapKeyDoubleQuoted": {
       "name": "string.quoted.double.tabletest",
-      "contentName": "support.type.property-name.tabletest",
+      "contentName": "support.type.property-name.tabletest entity.other.attribute-name.tabletest.probe",
       "begin": "\\\"(?=(?:\\\\.|[^\\\"\\\\\\r\\n])*\\\"\\s*:)",
       "beginCaptures": {
         "0": {
@@ -331,7 +331,7 @@
     },
     "mapKeySingleQuoted": {
       "name": "string.quoted.single.tabletest",
-      "contentName": "support.type.property-name.tabletest",
+      "contentName": "support.type.property-name.tabletest entity.other.attribute-name.tabletest.probe",
       "begin": "'(?=(?:\\\\.|[^'\\\\\\r\\n])*'\\s*:)",
       "beginCaptures": {
         "0": {
@@ -352,7 +352,7 @@
       ]
     },
     "mapKey": {
-      "name": "support.type.property-name.tabletest",
+      "name": "support.type.property-name.tabletest entity.other.attribute-name.tabletest.probe",
       "match": "(?:(?!\\\"\\\"\\\")[^,:\\]\\|\\r\\n])+(?=\\s*:)"
     }
   }
