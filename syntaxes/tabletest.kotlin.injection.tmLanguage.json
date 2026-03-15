@@ -142,6 +142,7 @@
       },
       "end": "(?=\\|)|(?=\\\"\\\"\\\")|$",
       "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
         { "include": "#stringDouble" },
         { "include": "#stringSingle" },
         { "include": "#mapLiteral" },

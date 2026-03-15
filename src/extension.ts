@@ -1,16 +1,24 @@
 import * as vscode from "vscode";
 import { TableTestFormatter } from "./formatter";
+import { TableHeaderSemanticTokensProvider, tableHeaderSemanticLegend } from "./tableHeaderSemanticTokens";
 import { registerTableDiagnostics } from "./tableDiagnostics";
 
 /**
- * Syntax highlighting is provided via a TextMate injection grammar (see syntaxes/).
+ * Syntax highlighting is provided via a TextMate injection grammar (see syntaxes/)
+ * plus semantic header tokens for cases that depend on parsed table structure.
  */
 export function activate(context: vscode.ExtensionContext) {
 	const formatter = new TableTestFormatter();
+	const semanticTokensProvider = new TableHeaderSemanticTokensProvider();
 	const supportedLanguages = new Set(["java", "kotlin", "tabletest"]);
 	registerTableDiagnostics(context);
 
 	context.subscriptions.push(
+		vscode.languages.registerDocumentSemanticTokensProvider(
+			[{ language: "java" }, { language: "kotlin" }, { language: "tabletest" }],
+			semanticTokensProvider,
+			tableHeaderSemanticLegend
+		),
 		vscode.languages.registerDocumentFormattingEditProvider([{ language: "tabletest" }], formatter),
 		vscode.languages.registerDocumentRangeFormattingEditProvider([{ language: "tabletest" }], formatter),
 		vscode.commands.registerCommand("tabletest.formatAllTables", async () => {

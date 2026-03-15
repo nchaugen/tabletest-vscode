@@ -45,3 +45,6 @@ Scenario | "b" | 'c'
 //                           ^ meta.tabletest.map
   // table comment
 //   ^ comment.line.double-slash.tabletest
+
+// leading comment before header
+// ^ comment.line.double-slash.tabletest

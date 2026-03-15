@@ -83,7 +83,7 @@ export function formatTableString(tableText: string, baseIndent: string = "", ta
 }
 
 type QuoteChar = "'" | "\"";
-type CellSpan = {
+export type CellSpan = {
   text: string;
   start: number;
   end: number;
@@ -117,7 +117,7 @@ function splitRow(line: string): string[] {
   return splitRowWithSpans(line).map((cell) => cell.text);
 }
 
-function splitRowWithSpans(line: string): CellSpan[] {
+export function splitRowWithSpans(line: string): CellSpan[] {
   const cells: CellSpan[] = [];
   let current = "";
   let cellStart = 0;

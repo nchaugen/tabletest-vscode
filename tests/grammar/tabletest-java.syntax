@@ -104,6 +104,37 @@ class CommentBeforeImplicitValue {
   void testCommentBeforeImplicitValue() {}
 }
 
+class LeadingCommentBeforeHeader {
+  @TableTest(
+    """
+    // leading table comment
+//  ^ comment.line.double-slash.tabletest
+    scenario | result?
+//  ^ markup.heading.tabletest
+//  ^ meta.tabletest.header
+//  ^ entity.name.column.tabletest
+//           ^ keyword.operator.tabletest.pipe
+    one      | ok
+//  ^ meta.tabletest.row
+    """
+  )
+  void testLeadingCommentBeforeHeader() {}
+}
+
+class StringArrayLeadingCommentBeforeHeader {
+  @TableTest({
+    "// leading array comment",
+//   ^ comment.line.double-slash.tabletest
+    "scenario|result?",
+//   ^ markup.heading.tabletest
+//   ^ meta.tabletest.header
+//           ^ keyword.operator.tabletest.pipe
+    "one|ok"
+//   ^ meta.tabletest.row
+  })
+  void testStringArrayLeadingCommentBeforeHeader() {}
+}
+
 class MultipleArgsWithNamedValue {
   @TableTest(
     name = "custom name",

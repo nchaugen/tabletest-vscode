@@ -128,8 +128,41 @@
     },
     "tabletestArrayRows": {
       "patterns": [
-        { "include": "#tabletestArrayHeaderString" },
+        { "include": "#tabletestArrayLeadingIgnoredRows" },
+        { "include": "#tabletestArrayHeaderAndRemainingRows" }
+      ]
+    },
+    "tabletestArrayLeadingIgnoredRows": {
+      "begin": "^(?=\\s*\\\"\\s*(?://.*)?\\\"\\s*,?$)",
+      "while": "^\\s*\\\"\\s*(?://.*)?\\\"\\s*,?$",
+      "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*(?=\\\")" }
+      ]
+    },
+    "tabletestArrayHeaderAndRemainingRows": {
+      "begin": "^(?=\\s*\\\")",
+      "end": "(?=\\})",
+      "patterns": [
+        { "include": "#tabletestArrayHeaderStringAtStateStart" },
         { "include": "#tabletestArrayRemainingRows" }
+      ]
+    },
+    "tabletestArrayHeaderStringAtStateStart": {
+      "name": "markup.heading.tabletest meta.tabletest.header",
+      "begin": "\\G\\s*(\\\")",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.tabletest"
+        }
+      },
+      "end": "(?<!\\\\)(\\\")",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.string.end.tabletest"
+        }
+      },
+      "patterns": [
+        { "include": "#tableHeaderInArray" }
       ]
     },
     "tabletestArrayHeaderString": {
@@ -228,22 +261,28 @@
     },
     "table": {
       "patterns": [
-        { "include": "#tableHeaderRow" },
-        { "include": "#tableHeaderRowCrLf" },
+        { "include": "#tableLeadingIgnoredLines" },
+        { "include": "#tableHeaderAndRemainingRows" }
+      ]
+    },
+    "tableLeadingIgnoredLines": {
+      "begin": "^(?=[ \\t]*(?://|$))",
+      "while": "^[ \\t]*(?://.*)?$",
+      "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" }
+      ]
+    },
+    "tableHeaderAndRemainingRows": {
+      "begin": "^(?![ \\t]*(?://|$))",
+      "end": "(?=(?<!\\\\)\\\"\\\"\\\")",
+      "patterns": [
+        { "include": "#tableHeaderLineAtStateStart" },
         { "include": "#tableRow" }
       ]
     },
-    "tableHeaderRow": {
+    "tableHeaderLineAtStateStart": {
       "name": "markup.heading.tabletest meta.tabletest.header",
-      "begin": "(?<=\\\"\\\"\\\"\\n)",
-      "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
-      "patterns": [
-        { "include": "#tableHeaderCell" }
-      ]
-    },
-    "tableHeaderRowCrLf": {
-      "name": "markup.heading.tabletest meta.tabletest.header",
-      "begin": "(?<=\\\"\\\"\\\"\\r\\n)",
+      "begin": "\\G",
       "end": "(?=(?<!\\\\)\\\"\\\"\\\")|$",
       "patterns": [
         { "include": "#tableHeaderCell" }
@@ -284,6 +323,7 @@
       },
       "end": "(?=\\|)|(?=(?<!\\\\)\\\"\\\"\\\")|$",
       "patterns": [
+        { "name": "comment.line.double-slash.tabletest", "match": "//.*$" },
         { "include": "#stringDouble" },
         { "include": "#stringSingle" },
         { "include": "#mapLiteral" },

@@ -90,6 +90,42 @@
           "source.kotlin"
         ]
       }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "tableHeader",
+        "description": "TableTest header cells",
+        "superType": "type"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "tabletest",
+        "scopes": {
+          "tableHeader": [
+            "markup.heading.tabletest",
+            "entity.name.column.tabletest"
+          ]
+        }
+      },
+      {
+        "language": "java",
+        "scopes": {
+          "tableHeader": [
+            "markup.heading.tabletest",
+            "entity.name.column.tabletest"
+          ]
+        }
+      },
+      {
+        "language": "kotlin",
+        "scopes": {
+          "tableHeader": [
+            "markup.heading.tabletest",
+            "entity.name.column.tabletest"
+          ]
+        }
+      }
     ]
   },
   "scripts": {

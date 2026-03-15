@@ -100,6 +100,16 @@ class CommentBeforeImplicitValue {
   fun testCommentBeforeImplicitValue() {}
 }
 
+class LeadingCommentBeforeHeader {
+  @TableTest(
+    """
+    // leading table comment
+//  ^ comment.line.double-slash.tabletest
+    """
+  )
+  fun testLeadingCommentBeforeHeader() {}
+}
+
 class MultipleArgsWithNamedValue {
   @TableTest(
     name = "custom name",
