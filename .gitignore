@@ -1,6 +1,7 @@
 node_modules/
 
 # Build output
+dist/
 out/
 out-tests/
 *.tsbuildinfo
@@ -10,6 +11,7 @@ out-tests/
 
 # VS Code test runner downloads/state
 .vscode-test/
+.vscode-test-web/
 
 # Logs and temp files
 *.log

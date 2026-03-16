@@ -4,6 +4,8 @@ IDE support for TableTest tables used in JUnit data-driven tests.
 
 Website and docs: [tabletest.org](https://tabletest.org)
 
+Works in both desktop VS Code and VS Code for the Web (`vscode.dev`, `github.dev`, and compatible browser-hosted environments).
+
 ## What is TableTest?
 
 TableTest is a JUnit extension for writing data-driven tests as readable tables instead of repetitive test methods.
@@ -39,6 +41,15 @@ This style keeps test data clear, maintainable, and easy to extend.
 | Java `@TableTest({ ... })` string-array table | ✅ Java injection grammar | ✅ `TableTest: Format All Tables in Document` |
 
 Formatting in Java/Kotlin is intentionally exposed as a command so normal Java/Kotlin formatter entry points are not overridden.
+
+## VS Code for the Web
+
+The extension also runs as a web extension in browser-hosted VS Code.
+
+- `.table` language features work in the browser host.
+- Java and Kotlin support still depends on the corresponding language support being available in that environment.
+- `tabletest.format.extraIndentLevel` works as normal in the browser host.
+- Browser-hosted VS Code does not read Java formatter XML from `java.format.settings.url`; when `tabletest.format.extraIndentLevel` is not explicitly configured, Java falls back to the built-in TableTest default indentation.
 
 ## Installation
 
@@ -133,6 +144,7 @@ Typical annotation forms:
 - `tabletest.format.extraIndentLevel` (user-configurable; by default Kotlin behaves as `0`, while Java follows formatter continuation indentation)
   - Adds extra indentation levels to formatted rows inside Java/Kotlin `@TableTest` triple-quoted strings and Java string-array tables.
   - For Java, when this setting is not explicitly configured, TableTest reads `java.format.settings.url` profile values (`continuation_indentation_for_array_initializer` / `continuation_indentation`) and falls back to `2` levels if unavailable.
+  - In browser-hosted VS Code, `java.format.settings.url` is not read; Java falls back to `2` levels unless this TableTest setting is explicitly configured.
   - Indent width follows VS Code formatting options (`tabSize` / `insertSpaces`) and respects EditorConfig-applied indentation.
 
 ## Limitations
@@ -152,4 +164,5 @@ Developer documentation and release workflow are in `CONTRIBUTING.md`.
 Common local test commands:
 - Fast unit suite: `npm test` or `npm run test:unit`
 - Strict VS Code integration suite: `npm run test:integration:strict`
+- Browser-hosted web integration smoke suite: `npm run test:integration:web`
 - Full local suite matching CI gates: `npm run test:full`

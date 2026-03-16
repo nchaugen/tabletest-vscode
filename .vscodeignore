@@ -2,11 +2,13 @@
 .idea/**
 .vscode/**
 node_modules/**
+dist/web/test/**
 out-tests/**
 samples/**
 scripts/**
 src/**
 tests/**
 tabletest-*.vsix
+webpack.web.config.js
 tsconfig.json
 tsconfig.tests.json

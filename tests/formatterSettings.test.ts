@@ -3,12 +3,14 @@ import * as path from "node:path";
 import * as test from "node:test";
 import { pathToFileURL } from "node:url";
 import {
-  attributeValue,
   expandJavaFormatterPathVariables,
+  resolveJavaFormatterSettingsPath
+} from "../src/nodeFormatterSettings";
+import {
+  attributeValue,
   hasExplicitConfigurationValue,
   indentStringForLevels,
-  readFormatterSetting,
-  resolveJavaFormatterSettingsPath
+  readFormatterSetting
 } from "../src/formatterSettings";
 
 test("detects explicit formatter configuration values including zero", () => {

@@ -1,16 +1,16 @@
-import * as fs from "node:fs";
 import * as vscode from "vscode";
 import { formatTableString } from "./parser";
 import type { AnnotationHostLanguage } from "./parser";
 import { calculateDocumentEdits } from "./formatterEdits";
 import {
   hasExplicitConfigurationValue,
-  indentStringForLevels,
-  readFormatterSetting,
-  resolveJavaFormatterSettingsPath
+  indentStringForLevels
 } from "./formatterSettings";
+import type { JavaFormatterProfileReader } from "./javaFormatterProfileReader";
 
 export class TableTestFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
+  constructor(private readonly javaFormatterProfileReader: JavaFormatterProfileReader) {}
+
   provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions): vscode.TextEdit[] {
     if (document.languageId === "tabletest") {
       return this.formatTableDocument(document, options);
@@ -182,44 +182,7 @@ export class TableTestFormatter implements vscode.DocumentFormattingEditProvider
     document: vscode.TextDocument,
     settingIds: string[]
   ): number | null {
-    const javaConfig = vscode.workspace.getConfiguration("java", document.uri);
-    const formatterSettings = javaConfig.get<string>("format.settings.url");
-    if (typeof formatterSettings !== "string" || formatterSettings.trim() === "") {
-      return null;
-    }
-
-    const settingsPath = this.resolveJavaFormatterSettingsPath(formatterSettings, document);
-    if (!settingsPath) {
-      return null;
-    }
-
-    let formatterXml: string;
-    try {
-      formatterXml = fs.readFileSync(settingsPath, "utf8");
-    } catch {
-      return null;
-    }
-
-    for (const settingId of settingIds) {
-      const value = this.readFormatterSetting(formatterXml, settingId);
-      if (value !== null) {
-        return value;
-      }
-    }
-    return null;
-  }
-
-  private resolveJavaFormatterSettingsPath(
-    configuredUrl: string,
-    document: vscode.TextDocument
-  ): string | null {
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri) ?? vscode.workspace.workspaceFolders?.[0];
-    const workspaceRoot = workspaceFolder?.uri.fsPath ?? "";
-    return resolveJavaFormatterSettingsPath(configuredUrl, workspaceRoot, process.env);
-  }
-
-  private readFormatterSetting(formatterXml: string, settingId: string): number | null {
-    return readFormatterSetting(formatterXml, settingId);
+    return this.javaFormatterProfileReader.readIndentLevels(document, settingIds);
   }
 
   private defaultJavaArrayContinuationIndentLevels(): number {

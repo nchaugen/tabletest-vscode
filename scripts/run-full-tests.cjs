@@ -31,6 +31,7 @@ function runScript(scriptName) {
 async function main() {
   await runScript("test:unit");
   await runScript("test:integration:strict");
+  await runScript("test:integration:web");
 }
 
 main().catch((error) => {

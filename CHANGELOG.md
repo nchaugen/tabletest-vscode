@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Web extension support for browser-hosted VS Code, including `.table` formatting, diagnostics, semantic tokens, and command support.
+- Browser smoke-test coverage using `@vscode/test-web`.
+
+### Changed
+
+- Extension runtime is now split into shared, desktop, and web entrypoints so the browser host stays free of Node-only APIs.
+
+### Fixed
+
+- Browser-hosted Java formatting now falls back cleanly when `java.format.settings.url` cannot be read instead of depending on Node file-system APIs.
+
 ## [0.0.7] - 2026-03-15
 
 ### Added
@@ -141,4 +154,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.0.5]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/nchaugen/tabletest-vscode/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/nchaugen/tabletest-vscode/releases/tag/v0.0.3
-

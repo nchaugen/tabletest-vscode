@@ -10,6 +10,7 @@
     "url": "https://github.com/nchaugen/tabletest-vscode.git"
   },
   "activationEvents": [
+    "onLanguage:tabletest",
     "onLanguage:java",
     "onLanguage:kotlin"
   ],
@@ -36,6 +37,7 @@
     "kotlin"
   ],
   "main": "./out/extension.js",
+  "browser": "./dist/web/extension.js",
   "contributes": {
     "configurationDefaults": {
       "[tabletest]": {
@@ -144,16 +146,25 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "clean:build": "node ./scripts/clean-build.cjs",
+    "clean:out": "npm run clean:build -- out",
+    "clean:out-tests": "npm run clean:build -- out-tests",
+    "clean:web": "npm run clean:build -- dist",
+    "vscode:prepublish": "npm run compile && npm run package-web",
+    "compile": "npm run clean:out && tsc -p ./",
+    "watch": "npm run clean:out && tsc -watch -p ./",
+    "compile-web": "npm run clean:web && webpack --mode none --config webpack.web.config.js",
+    "watch-web": "npm run clean:web && webpack --mode none --watch --config webpack.web.config.js",
+    "package-web": "npm run clean:web && webpack --mode production --devtool hidden-source-map --config webpack.web.config.js",
     "package": "vsce package",
+    "open:web": "npm run compile && npm run package-web && node ./out/test/openWeb.js",
     "release:prepare": "node ./scripts/prepare-release.cjs",
     "release:notes": "node ./scripts/extract-release-notes.cjs",
     "test": "npm run test:unit",
     "test:unit": "npm run test:formatter && npm run test:grammar",
-    "test:formatter": "tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
+    "test:formatter": "npm run clean:out-tests && tsc -p tsconfig.tests.json && node --test out-tests/tests/*.test.js",
     "test:integration": "npm run compile && node ./out/test/runTest.js",
+    "test:integration:web": "npm run compile && npm run package-web && node ./out/test/runWebTest.js",
     "test:integration:strict": "node ./scripts/run-integration-strict.cjs",
     "test:full": "node ./scripts/run-full-tests.cjs",
     "test:grammar": "vscode-tmgrammar-test -g ./syntaxes/tabletest.injection.tmLanguage.json -g ./syntaxes/tabletest.kotlin.injection.tmLanguage.json -g ./syntaxes/tabletest.tmLanguage.json \"tests/grammar/**/*.syntax\"",
@@ -164,12 +175,16 @@
     "@types/node": "^25.5.0",
     "@types/mocha": "^10.0.7",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/test-web": "^0.0.71",
     "typescript": "^5.4.0",
     "eslint": "^10.0.3",
     "@typescript-eslint/parser": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@vscode/vsce": "^3.0.0",
     "mocha": "^11.7.5",
-    "vscode-tmgrammar-test": "^0.1.3"
+    "ts-loader": "^9.5.1",
+    "vscode-tmgrammar-test": "^0.1.3",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   }
 }

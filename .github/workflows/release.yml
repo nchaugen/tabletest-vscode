@@ -44,6 +44,9 @@ jobs:
       - name: Run strict integration tests
         run: xvfb-run -a npm run test:integration:strict
 
+      - name: Run web integration tests
+        run: npm run test:integration:web
+
       - name: Extract curated release notes
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
