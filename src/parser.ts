@@ -234,21 +234,11 @@ export function findTableIssues(tableText: string): TableIssue[] {
   return issues;
 }
 
-function isCollectionValid(value: string): boolean {
-  const formatted = formatCollection(value);
-  return formatted !== null;
-}
-
 function formatCellValue(value: string): string {
   const trimmed = value.trim();
   if (trimmed === "") return "";
   const validation = validateAndFormatValue(trimmed, "cellValue");
   return validation.formatted ?? trimmed;
-}
-
-function formatCollection(value: string): string | null {
-  const validation = validateAndFormatCollection(value);
-  return validation.formatted;
 }
 
 function validateAndFormatCollection(value: string): ValidationResult {
@@ -391,14 +381,14 @@ function isQuotedString(value: string): boolean {
 
 function isValidUnquotedValue(value: string, role: Exclude<ValidationRole, "mapKey">): boolean {
   if (role === "cellValue") {
-    return !/\|/.test(value);
+    return !/[|]/.test(value);
   }
 
-  return !/[,\|]/.test(value) && !hasAmbiguousBareColonValue(value);
+  return !/[,|]/.test(value) && !hasAmbiguousBareColonValue(value);
 }
 
 function isValidUnquotedMapKey(value: string): boolean {
-  return value.trim() === value && !/[\s,:|\[\]\{\}'"]/.test(value);
+  return value.trim() === value && !/[\s,:|[\]{}'"]/.test(value);
 }
 
 function looksLikeBrokenQuotedString(value: string): boolean {
@@ -829,7 +819,6 @@ export function extractAnnotationTables(
     const annotation = findNextTableTestAnnotation(text, searchIndex, language);
     if (!annotation) break;
 
-    const annotationStart = annotation.start;
     const annotationNameEnd = annotation.end;
 
     const openParenIndex = skipWhitespaceAndComments(text, annotationNameEnd, text.length);
@@ -1449,13 +1438,3 @@ function hasOddTrailingBackslashCount(text: string, index: number): boolean {
   return backslashCount % 2 === 1;
 }
 
-function isIdentifierCharacter(value: string): boolean {
-  if (value === "") return false;
-  const codePoint = value.charCodeAt(0);
-  return (
-    (codePoint >= 48 && codePoint <= 57) ||
-    (codePoint >= 65 && codePoint <= 90) ||
-    (codePoint >= 97 && codePoint <= 122) ||
-    codePoint === 95
-  );
-}
