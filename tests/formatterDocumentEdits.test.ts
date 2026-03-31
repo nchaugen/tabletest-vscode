@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { calculateDocumentEdits, DocumentAdapter, Range } from "../src/formatterEdits";
 
 function createFakeDocument(text: string): DocumentAdapter {

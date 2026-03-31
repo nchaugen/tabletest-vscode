@@ -1,6 +1,6 @@
 import * as assert from "node:assert/strict";
 import * as path from "node:path";
-import * as test from "node:test";
+import test from "node:test";
 import { pathToFileURL } from "node:url";
 import {
   expandJavaFormatterPathVariables,

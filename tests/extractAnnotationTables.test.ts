@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { extractAnnotationTables } from "../src/parser";
 
 test("extracts implicit Java string-array table and exposes argument replacement range", () => {

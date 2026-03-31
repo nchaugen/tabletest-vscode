@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { calculateTableEdits, OffsetRange, TableEdit } from "../src/formatterEdits";
 import { formatTableString } from "../src/parser";
 

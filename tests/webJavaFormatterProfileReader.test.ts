@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { WebJavaFormatterProfileReader } from "../src/webJavaFormatterProfileReader";
 
 test("web formatter profile reader always falls back to defaults", () => {

@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { extractTripleQuotedTables } from "../src/parser";
 
 function nthIndexOf(text: string, needle: string, occurrence: number): number {

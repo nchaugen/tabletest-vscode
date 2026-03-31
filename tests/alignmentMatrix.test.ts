@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { extractAnnotationTables, formatTableString } from "../src/parser";
 import type { AnnotationHostLanguage } from "../src/parser";
 import { calculateTableEdits, TableEdit } from "../src/formatterEdits";

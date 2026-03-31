@@ -1,5 +1,5 @@
 import * as assert from "node:assert/strict";
-import * as test from "node:test";
+import test from "node:test";
 import { findTableIssues } from "../src/parser";
 
 test("does not report issues for valid table content", () => {

@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as Mocha from "mocha";
+import Mocha from "mocha";
 
 function collectTests(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
