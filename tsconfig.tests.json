@@ -5,8 +5,7 @@
     "outDir": "out-tests",
     "types": [
       "node"
-    ],
-    "moduleResolution": "node"
+    ]
   },
   "include": [
     "src/**/*.ts",
