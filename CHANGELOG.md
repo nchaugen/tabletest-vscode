@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Extension runtime is now split into shared, desktop, and web entrypoints so the browser host stays free of Node-only APIs.
+- Build configuration updated for TypeScript 6 compatibility.
 
 ### Fixed
 
