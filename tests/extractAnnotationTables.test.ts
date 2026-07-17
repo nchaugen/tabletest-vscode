@@ -79,6 +79,60 @@ test("does not extract Kotlin string arrays", () => {
   assert.strictEqual(tables.length, 0);
 });
 
+test("does not extract annotations inside line comments", () => {
+  const text = [
+    "class T {",
+    "    // @TableTest({\"a|b\", \"c|d\"})",
+    "    void x() {}",
+    "}"
+  ].join("\n");
+
+  assert.strictEqual(extractAnnotationTables(text, "java").length, 0);
+});
+
+test("does not extract Kotlin annotations inside line comments", () => {
+  const text = [
+    "class T {",
+    "    // @TableTest(\"\"\"a | b\"\"\")",
+    "    fun x() {}",
+    "}"
+  ].join("\n");
+
+  assert.strictEqual(extractAnnotationTables(text, "kotlin").length, 0);
+});
+
+test("does not extract annotations inside block comments", () => {
+  const text = [
+    "/**",
+    " * Example: @TableTest({\"a|b\", \"1|2\"})",
+    " */",
+    "class T {}"
+  ].join("\n");
+
+  assert.strictEqual(extractAnnotationTables(text, "java").length, 0);
+});
+
+test("does not extract annotations inside string literals", () => {
+  const text = "String snippet = \"@TableTest({\\\"a|b\\\", \\\"1|2\\\"})\";";
+
+  assert.strictEqual(extractAnnotationTables(text, "java").length, 0);
+});
+
+test("extracts annotation following a comment", () => {
+  const text = [
+    "// commented out: @TableTest({\"old|table\"})",
+    "/* also here: @TableTest({\"old|table\"}) */",
+    "@TableTest({\"a|b\", \"1|2\"})"
+  ].join("\n");
+
+  const tables = extractAnnotationTables(text, "java");
+  assert.strictEqual(tables.length, 1);
+  const first = tables[0];
+  assert.ok(first);
+  assert.strictEqual(first.kind, "stringArray");
+  assert.strictEqual(first.rows.map((row: { content: string }) => row.content).join("\n"), "a|b\n1|2");
+});
+
 test("decodes Java string-array escapes for downstream table parsing", () => {
   const text = "@TableTest({\"a|b\",\"[k:\\\"v\\\"]|ok\"})";
   const tables = extractAnnotationTables(text, "java");

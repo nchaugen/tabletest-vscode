@@ -851,22 +851,48 @@ function findNextTableTestAnnotation(
   searchIndex: number,
   language: AnnotationHostLanguage
 ): { start: number; end: number } | null {
-  const pattern =
-    language === "java"
-      ? /@(?:[\w$]+\.)*TableTest(?![\w$])/g
-      : /@TableTest(?![\w$])/g;
+  let index = searchIndex;
+  while (index < text.length) {
+    if (text.startsWith("//", index)) {
+      index = skipLineComment(text, index + 2, text.length);
+      continue;
+    }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, text.length);
+      continue;
+    }
+    if (text.startsWith(tripleQuote, index)) {
+      index = skipTripleQuotedString(text, index, text.length, language);
+      continue;
+    }
 
-  pattern.lastIndex = searchIndex;
-  const match = pattern.exec(text);
-  if (!match) {
-    return null;
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char, text.length);
+      continue;
+    }
+    if (char === "@") {
+      const annotationEnd = matchTableTestAnnotationAt(text, index, language);
+      if (annotationEnd >= 0) {
+        return { start: index, end: annotationEnd };
+      }
+    }
+
+    index += 1;
   }
 
-  const start = match.index;
-  return {
-    start,
-    end: start + match[0].length
-  };
+  return null;
+}
+
+function matchTableTestAnnotationAt(text: string, start: number, language: AnnotationHostLanguage): number {
+  const pattern =
+    language === "java"
+      ? /@(?:[\w$]+\.)*TableTest(?![\w$])/y
+      : /@TableTest(?![\w$])/y;
+
+  pattern.lastIndex = start;
+  const match = pattern.exec(text);
+  return match ? start + match[0].length : -1;
 }
 
 export function extractTripleQuotedTables(
@@ -1377,6 +1403,12 @@ function skipLineComment(text: string, start: number, end: number): number {
     index += 1;
   }
   return index;
+}
+
+function skipBlockComment(text: string, start: number, end: number): number {
+  const closeIndex = text.indexOf("*/", start);
+  if (closeIndex < 0 || closeIndex + 2 > end) return end;
+  return closeIndex + 2;
 }
 
 function skipQuotedString(text: string, start: number, quote: QuoteChar, end: number): number {
