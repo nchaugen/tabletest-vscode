@@ -357,3 +357,23 @@ test("aligns Java string-array columns after escaping quoted scalar values and b
   assert.ok(updated.includes("\"quoted whitespace        | \\\"  padded  \\\""));
   assert.ok(updated.includes("\"escaped quotes and slash | \\\"Say \\\\\\\"hi\\\\\\\"\\\""));
 });
+
+test("keeps CRLF line endings when formatting a text block in a CRLF document", () => {
+  const text = "class T {\r\n    @TableTest(\"\"\"\r\n        a | b\r\n        1     | 2\r\n        \"\"\")\r\n    void x() {}\r\n}\r\n";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  assert.ok(!/[^\r]\n/.test(updated), `Expected no bare LF line endings in: ${JSON.stringify(updated)}`);
+});
+
+test("keeps CRLF line endings when formatting a string array in a CRLF document", () => {
+  const text = "class T {\r\n    @TableTest({\"a|b\", \"1    |2\"})\r\n    void x() {}\r\n}\r\n";
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  assert.ok(!/[^\r]\n/.test(updated), `Expected no bare LF line endings in: ${JSON.stringify(updated)}`);
+});

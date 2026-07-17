@@ -474,3 +474,17 @@ test("aligns trailing closing-quote indentation with base indent", () => {
 
   assert.strictEqual(once, "\n    a | b\n    1 | 22\n    ");
 });
+
+test("preserves CRLF line endings when the table uses them", () => {
+  const input = "\r\na|b\r\n1|22\r\n";
+  const once = formatTableString(input, "    ");
+
+  assert.strictEqual(once, "\r\n    a | b\r\n    1 | 22\r\n    ");
+});
+
+test("returns already-formatted CRLF tables unchanged", () => {
+  const input = "\r\n    a | b\r\n    1 | 22\r\n    ";
+  const once = formatTableString(input, "    ");
+
+  assert.strictEqual(once, input);
+});

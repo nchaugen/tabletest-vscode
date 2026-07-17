@@ -1,5 +1,6 @@
 export function formatTableString(tableText: string, baseIndent: string = "", tabSize: number = 4): string {
-  // Normalize CRLF -> LF
+  const eol = tableText.includes("\r\n") ? "\r\n" : "\n";
+  // Normalize CRLF -> LF for processing; original line endings are restored on output
   const text = tableText.replace(/\r\n?/g, "\n");
 
   const lines = text.split("\n");
@@ -79,7 +80,7 @@ export function formatTableString(tableText: string, baseIndent: string = "", ta
       }
       return baseIndent + line;
     })
-    .join("\n");
+    .join(eol);
 }
 
 type QuoteChar = "'" | "\"";

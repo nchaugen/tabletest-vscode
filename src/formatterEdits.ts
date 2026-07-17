@@ -41,7 +41,8 @@ export function calculateTableEdits(
     }
 
     const originalArray = text.slice(table.start, table.end);
-    const formattedArray = formatStringArrayTable(table, formatTable, arrayExtraIndent, tabSize, originalArray);
+    const documentEol = text.includes("\r\n") ? "\r\n" : "\n";
+    const formattedArray = formatStringArrayTable(table, formatTable, arrayExtraIndent, tabSize, originalArray, documentEol);
     if (formattedArray === originalArray) return [];
     return [{ start: table.start, end: table.end, formatted: formattedArray }];
   });
@@ -108,7 +109,8 @@ function formatStringArrayTable(
   formatTable: FormatTable,
   extraIndent: string,
   tabSize: number,
-  originalArray: string
+  originalArray: string,
+  eol: string
 ): string {
   const sourceRows = table.rows.map((row) => row.decodedContent);
   const sourceTable = sourceRows.join("\n");
@@ -134,7 +136,7 @@ function formatStringArrayTable(
     return `${rowIndent}"${literal}"${suffix}`;
   });
 
-  return ["{", ...rowLines, `${table.indent}}`].join("\n");
+  return ["{", ...rowLines, `${table.indent}}`].join(eol);
 }
 
 type EscapedArrayLine = {
