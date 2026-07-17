@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Block comments (`/* … */`) inside annotation arguments no longer prevent table detection; tables like `@TableTest(/* rows */ """…""")` are now formatted, with the comments kept in place.
 - Formatting no longer deletes comments around string-array tables: comments between the parenthesis and the array brace are preserved, and arrays with comments between entries keep diagnostics and highlighting but are left unformatted rather than having their comments silently removed.
 - Kotlin `@TableTest` with a positional table and named arguments (e.g. `@TableTest("""…""", encoding = "UTF-16")`) is now recognised for formatting, diagnostics, and highlighting. The unsupported Kotlin array forms of `value` are now documented as a limitation.
+- Formatting a string array whose opening brace sits on its own line now produces the canonical layout in a single pass; previously the first pass indented rows relative to the old brace position and only a second format settled the result.
 
 ## [0.1.0] - 2026-04-06
 

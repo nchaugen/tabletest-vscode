@@ -974,6 +974,8 @@ function extractTableFromArguments(
  * Widens an implicit string-array value to span the whole argument, so
  * formatting glues the brace to the parenthesis — but only across pure
  * whitespace, never across comments, which must survive formatting.
+ * When gluing, the indent follows the line the brace lands on, so the
+ * first formatting pass already produces the canonical layout.
  */
 function withCanonicalArgumentRange(
   text: string,
@@ -982,10 +984,16 @@ function withCanonicalArgumentRange(
 ): ExtractedTableStringArray {
   const canGlueToParenthesis = text.slice(range.start, table.start).trim() === "";
   const canAbsorbTrailingWhitespace = text.slice(table.end, range.end).trim() === "";
+  if (!canGlueToParenthesis) {
+    return canAbsorbTrailingWhitespace ? { ...table, end: range.end } : table;
+  }
   return {
     ...table,
-    start: canGlueToParenthesis ? range.start : table.start,
-    end: canAbsorbTrailingWhitespace ? range.end : table.end
+    start: range.start,
+    end: canAbsorbTrailingWhitespace ? range.end : table.end,
+    // range.start sits just past the opening parenthesis (possibly on a line
+    // break); the brace lands on the parenthesis line, so indent follows it.
+    indent: lineLeadingIndentAt(text, range.start - 1)
   };
 }
 

@@ -419,3 +419,26 @@ test("formats text blocks with a block comment before the implicit value", () =>
   assert.ok(updated.includes("/* rows */"), `Expected comment preserved in: ${JSON.stringify(updated)}`);
   assert.ok(updated.includes("a | b"), `Expected formatted rows in: ${JSON.stringify(updated)}`);
 });
+
+test("formats an array brace on its own line canonically in one pass", () => {
+  const text = [
+    "    @TableTest(",
+    "            {\"a|b\", \"1|22\"})",
+    "    void x() {}"
+  ].join("\n");
+
+  const format = (input: string): string =>
+    applyEdits(input, calculateTableEdits(input, (content, indent) => formatTableString(content, indent), undefined, "java", "  "));
+
+  const once = format(text);
+  const expected = [
+    "    @TableTest({",
+    "      \"a | b \",",
+    "      \"1 | 22\"",
+    "    })",
+    "    void x() {}"
+  ].join("\n");
+
+  assert.strictEqual(once, expected);
+  assert.strictEqual(format(once), once);
+});
