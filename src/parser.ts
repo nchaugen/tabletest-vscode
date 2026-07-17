@@ -797,6 +797,7 @@ export type ExtractedTableStringArray = {
   end: number;
   indent: string;
   rows: ExtractedTableStringArrayRow[];
+  containsComments: boolean;
 };
 
 export type ExtractedAnnotationTable = ExtractedTableTextBlock | ExtractedTableStringArray;
@@ -949,7 +950,7 @@ function extractTableFromArguments(
     if (!implicitValue) {
       const positionalValue = parseDirectTableValue(text, expressionStart, range.end, language);
       if (positionalValue && positionalValue.kind === "stringArray") {
-        implicitValue = { ...positionalValue, start: range.start, end: range.end };
+        implicitValue = withCanonicalArgumentRange(text, positionalValue, range);
       } else {
         implicitValue = positionalValue;
       }
@@ -963,6 +964,25 @@ function extractTableFromArguments(
   }
 
   return implicitValue;
+}
+
+/**
+ * Widens an implicit string-array value to span the whole argument, so
+ * formatting glues the brace to the parenthesis — but only across pure
+ * whitespace, never across comments, which must survive formatting.
+ */
+function withCanonicalArgumentRange(
+  text: string,
+  table: ExtractedTableStringArray,
+  range: Range
+): ExtractedTableStringArray {
+  const canGlueToParenthesis = text.slice(range.start, table.start).trim() === "";
+  const canAbsorbTrailingWhitespace = text.slice(table.end, range.end).trim() === "";
+  return {
+    ...table,
+    start: canGlueToParenthesis ? range.start : table.start,
+    end: canAbsorbTrailingWhitespace ? range.end : table.end
+  };
 }
 
 function parseDirectTableValue(
@@ -1067,7 +1087,8 @@ function parseStaticStringArrayValue(
     start: arrayStart,
     end: closeBraceIndex + 1,
     indent: lineLeadingIndentAt(text, arrayStart),
-    rows
+    rows,
+    containsComments: rangeContainsComment(text, arrayStart + 1, closeBraceIndex)
   };
 }
 
@@ -1230,6 +1251,10 @@ function findMatchingBrace(
       index = skipLineComment(text, index + 2, limit);
       continue;
     }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, limit);
+      continue;
+    }
 
     const char = text[index] ?? "";
     if (char === "\"" || char === "'") {
@@ -1269,6 +1294,10 @@ function splitTopLevelArguments(text: string, start: number, end: number, langua
     }
     if (text.startsWith("//", index)) {
       index = skipLineComment(text, index + 2, end);
+      continue;
+    }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, end);
       continue;
     }
 
@@ -1318,6 +1347,10 @@ function findTopLevelEquals(text: string, start: number, end: number, language: 
       index = skipLineComment(text, index + 2, end);
       continue;
     }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, end);
+      continue;
+    }
 
     const char = text[index] ?? "";
     if (char === "\"" || char === "'") {
@@ -1358,6 +1391,10 @@ function findMatchingParenthesis(text: string, openParenIndex: number, language:
       index = skipLineComment(text, index + 2, text.length);
       continue;
     }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, text.length);
+      continue;
+    }
 
     const char = text[index] ?? "";
     if (char === "\"" || char === "'") {
@@ -1393,9 +1430,29 @@ function skipWhitespaceAndComments(text: string, start: number, end: number): nu
       index = skipLineComment(text, index + 2, end);
       continue;
     }
+    if (text.startsWith("/*", index)) {
+      index = skipBlockComment(text, index + 2, end);
+      continue;
+    }
     break;
   }
   return index;
+}
+
+function rangeContainsComment(text: string, start: number, end: number): boolean {
+  let index = start;
+  while (index < end) {
+    const char = text[index] ?? "";
+    if (char === "\"" || char === "'") {
+      index = skipQuotedString(text, index, char as QuoteChar, end);
+      continue;
+    }
+    if (text.startsWith("//", index) || text.startsWith("/*", index)) {
+      return true;
+    }
+    index += 1;
+  }
+  return false;
 }
 
 function skipLineComment(text: string, start: number, end: number): number {

@@ -377,3 +377,45 @@ test("keeps CRLF line endings when formatting a string array in a CRLF document"
   const updated = applyEdits(text, edits);
   assert.ok(!/[^\r]\n/.test(updated), `Expected no bare LF line endings in: ${JSON.stringify(updated)}`);
 });
+
+test("preserves comments between the parenthesis and the array brace", () => {
+  const text = [
+    "@TableTest(",
+    "    // keep me",
+    "    {\"a|b\", \"1|22\"})"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  assert.ok(updated.includes("// keep me"), `Expected comment preserved in: ${JSON.stringify(updated)}`);
+  assert.ok(updated.includes("\"a | b \""), `Expected formatted rows in: ${JSON.stringify(updated)}`);
+});
+
+test("skips formatting string arrays with comments between entries", () => {
+  const withComments = [
+    "@TableTest({\"a|b\",",
+    "    // keep me",
+    "    \"1|22\"})"
+  ].join("\n");
+
+  const edits = calculateTableEdits(withComments, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 0);
+});
+
+test("formats text blocks with a block comment before the implicit value", () => {
+  const text = [
+    "  @TableTest(/* rows */ \"\"\"",
+    "    a|b",
+    "    1     | 2",
+    "    \"\"\")"
+  ].join("\n");
+
+  const edits = calculateTableEdits(text, (content, indent) => formatTableString(content, indent), undefined, "java", "  ");
+  assert.strictEqual(edits.length, 1);
+
+  const updated = applyEdits(text, edits);
+  assert.ok(updated.includes("/* rows */"), `Expected comment preserved in: ${JSON.stringify(updated)}`);
+  assert.ok(updated.includes("a | b"), `Expected formatted rows in: ${JSON.stringify(updated)}`);
+});

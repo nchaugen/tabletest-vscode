@@ -151,3 +151,40 @@ test("decodes Java string-array escapes for downstream table parsing", () => {
   const sourceQuoteOffset = row.decodedContentSourceOffsets[decodedQuoteIndex];
   assert.strictEqual(text.slice(sourceQuoteOffset, sourceQuoteOffset + 2), "\\\"");
 });
+
+test("extracts tables with block comments around annotation arguments", () => {
+  const text = [
+    "@TableTest /* note */ (/* rows */ \"\"\"",
+    "    a | b",
+    "    1 | 2",
+    "    \"\"\" /* trailing */)"
+  ].join("\n");
+
+  const tables = extractAnnotationTables(text, "java");
+  assert.strictEqual(tables.length, 1);
+  assert.strictEqual(tables[0]?.kind, "textBlock");
+});
+
+test("marks string arrays containing comments between entries", () => {
+  const cases = [
+    "@TableTest({\"a|b\", // note\n\"1|2\"})",
+    "@TableTest({\"a|b\", /* note */ \"1|2\"})"
+  ];
+
+  cases.forEach((text) => {
+    const tables = extractAnnotationTables(text, "java");
+    assert.strictEqual(tables.length, 1, `Expected extraction for: ${text}`);
+    const first = tables[0];
+    assert.ok(first);
+    assert.strictEqual(first.kind, "stringArray");
+    assert.ok(first.kind === "stringArray" && first.containsComments, `Expected containsComments for: ${text}`);
+    assert.strictEqual(first.rows.map((row: { content: string }) => row.content).join("\n"), "a|b\n1|2");
+  });
+});
+
+test("marks comment-free string arrays as containing no comments", () => {
+  const tables = extractAnnotationTables("@TableTest({\"a|b\", \"1|2\"})", "java");
+  const first = tables[0];
+  assert.ok(first && first.kind === "stringArray");
+  assert.strictEqual(first.containsComments, false);
+});

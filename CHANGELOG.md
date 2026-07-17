@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `@TableTest` annotations inside line comments, block comments, or string literals are no longer treated as real tables. Previously, formatting a file with a commented-out annotation rewrote the comment into multi-line code (breaking compilation), and diagnostics and header highlighting fired inside comments and Javadoc.
 - Formatting now preserves CRLF line endings. Previously, formatted text blocks and string arrays in CRLF documents were rewritten with LF, leaving mixed line endings, and an already-aligned CRLF table always produced an edit on the first format.
+- Block comments (`/* … */`) inside annotation arguments no longer prevent table detection; tables like `@TableTest(/* rows */ """…""")` are now formatted, with the comments kept in place.
+- Formatting no longer deletes comments around string-array tables: comments between the parenthesis and the array brace are preserved, and arrays with comments between entries keep diagnostics and highlighting but are left unformatted rather than having their comments silently removed.
 
 ## [0.1.0] - 2026-04-06
 

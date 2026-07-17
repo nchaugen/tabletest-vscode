@@ -112,6 +112,10 @@ function formatStringArrayTable(
   originalArray: string,
   eol: string
 ): string {
+  if (table.containsComments) {
+    return originalArray;
+  }
+
   const sourceRows = table.rows.map((row) => row.decodedContent);
   const sourceTable = sourceRows.join("\n");
   const dataRows = sourceRows.filter((row) => row.trim() !== "" && !row.trimStart().startsWith("//"));
