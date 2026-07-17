@@ -188,3 +188,22 @@ test("marks comment-free string arrays as containing no comments", () => {
   assert.ok(first && first.kind === "stringArray");
   assert.strictEqual(first.containsComments, false);
 });
+
+test("extracts Kotlin positional text block alongside named arguments", () => {
+  const text = [
+    "@TableTest(\"\"\"",
+    "    a | b",
+    "    1 | 2",
+    "    \"\"\", encoding = \"UTF-16\")"
+  ].join("\n");
+
+  const tables = extractAnnotationTables(text, "kotlin");
+  assert.strictEqual(tables.length, 1);
+  assert.strictEqual(tables[0]?.kind, "textBlock");
+});
+
+test("still rejects Java positional value mixed with named arguments", () => {
+  const text = "@TableTest({\"a|b\"}, encoding = \"UTF-16\")";
+
+  assert.strictEqual(extractAnnotationTables(text, "java").length, 0);
+});

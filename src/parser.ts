@@ -957,9 +957,13 @@ function extractTableFromArguments(
     }
   }
 
-  // In Java/Kotlin annotation usage, implicit value is only reliable when it is
-  // the sole positional argument and no named arguments are present.
-  if (namedArgumentSeen || positionalArgumentCount !== 1) {
+  // The implicit value must be the sole positional argument. Java additionally
+  // forbids mixing it with named arguments; Kotlin allows named arguments after
+  // a positional value.
+  if (positionalArgumentCount !== 1) {
+    return null;
+  }
+  if (namedArgumentSeen && language !== "kotlin") {
     return null;
   }
 

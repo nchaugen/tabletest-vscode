@@ -153,8 +153,9 @@ Typical annotation forms:
 - `value` is extracted only from a direct supported literal:
   - triple-quoted literal (`"""..."""`), or
   - Java static string-array literal (`{"...", "..."}`).
+- Kotlin array forms of `value` — the array literal (`value = ["...", "..."]`) and vararg rows (`@TableTest("...", "...")`) — are not recognised; use a triple-quoted string in Kotlin.
 - For implicit Java string-array formatting, the formatter normalises boundaries to `@TableTest({` ... `})`.
-- Implicit extraction is only used when there is exactly one positional argument and no named arguments.
+- Implicit extraction is only used when there is exactly one positional argument; Java additionally requires that no named arguments are present.
 - Diagnostics currently focus on syntax problems inside recognisable table cells, including malformed list/set/map values and unquoted map keys that require quoting.
 
 ## Contributing
