@@ -28,7 +28,6 @@ updates:
       build-and-publishing:
         applies-to: "version-updates"
         patterns:
-          - "typescript"
           - "@types/node"
           - "@vscode/vsce"
       linting-security:
@@ -46,12 +45,16 @@ updates:
       build-and-publishing-security:
         applies-to: "security-updates"
         patterns:
-          - "typescript"
           - "@types/node"
           - "@vscode/vsce"
     # Keep VS Code API typings aligned with engines.vscode through manual bumps.
+    # Hold TypeScript below the typescript-eslint peer ceiling. The v8 plugin
+    # declares "typescript@>=4.8.4 <6.1.0", so npm install fails on anything
+    # higher. Lift this once typescript-eslint widens the range to TypeScript 7.
     ignore:
       - dependency-name: "@types/vscode"
+      - dependency-name: "typescript"
+        versions: [">=6.1.0"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
