@@ -47,14 +47,18 @@ updates:
         patterns:
           - "@types/node"
           - "@vscode/vsce"
-    # Keep VS Code API typings aligned with engines.vscode through manual bumps.
-    # Hold TypeScript below the typescript-eslint peer ceiling. The v8 plugin
-    # declares "typescript@>=4.8.4 <6.1.0", so npm install fails on anything
-    # higher. Lift this once typescript-eslint widens the range to TypeScript 7.
     ignore:
+      # Keep VS Code API typings aligned with engines.vscode through manual bumps.
       - dependency-name: "@types/vscode"
+      # Hold TypeScript below the typescript-eslint peer ceiling. The v8 plugin
+      # declares "typescript@>=4.8.4 <6.1.0", so npm install fails above it.
+      # Lift once typescript-eslint widens the range to TypeScript 7.
       - dependency-name: "typescript"
         versions: [">=6.1.0"]
+      # mocha 12 is ESM-only and needs Node >=20.19. The VS Code 1.85 extension
+      # host runs Node 18, so it cannot load it. Lift when engines.vscode rises.
+      - dependency-name: "mocha"
+        versions: [">=12.0.0"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
